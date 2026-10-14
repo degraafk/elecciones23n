@@ -1,0 +1,6 @@
+{
+  "name": "Simulador de Elecciones Generales (Congreso y Senado)",
+  "description": "Simulador interactivo y mapa editable de escaños para el Congreso de los Diputados y Senado con cálculo de pactos y coaliciones en tiempo real.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

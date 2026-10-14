@@ -1,0 +1,6 @@
+{
+  "summary": "Detailed implementation plan to optimize the Spanish General Election simulator for high-performance deployment on Vercel, preserving the exact visual aesthetic while eliminating all lag through modern React 19 memoization, 60fps animations, smooth SVG rendering, and full feature parity (Excel/CSV/SVG exports, imports, paste, and coalition builder).",
+  "updatedAt": "2026-10-13T19:28:17.575631274Z",
+  "requestFeedback": true,
+  "userFacing": true
+}
