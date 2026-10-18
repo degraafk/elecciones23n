@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Party, Constituency, ScenarioData } from '../data/parliamentData';
+import { Party, Constituency, ScenarioData, isPartyEligible, ineligibleReason } from '../data/parliamentData';
 
 interface SeatsTableProps {
   constituencies: Constituency[];
@@ -220,6 +220,18 @@ export const SeatsTable: React.FC<SeatsTableProps> = ({
                     const canIncrement = left > 0 && currentVal < c.maxPerParty;
                     const canDecrement = currentVal > 0;
                     const hasValue = currentVal > 0;
+
+                    if (!isPartyEligible(isSenado, p.id, c.id)) {
+                      return (
+                        <td
+                          key={p.id}
+                          className="p-1.5 text-center whitespace-nowrap text-[#c9c7bf] select-none"
+                          title={`${p.name} no se presenta en ${c.name}. ${ineligibleReason(p.id)}`}
+                        >
+                          <span className="inline-block w-full rounded-lg bg-[#f4f4f1] py-1.5">–</span>
+                        </td>
+                      );
+                    }
 
                     return (
                       <td key={p.id} className="p-1.5 text-center whitespace-nowrap">

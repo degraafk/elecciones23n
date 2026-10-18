@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ModalShell } from './ModalShell';
-import { Party, Constituency, ScenarioData } from '../data/parliamentData';
+import { Party, Constituency, ScenarioData, isPartyEligible } from '../data/parliamentData';
 
 interface ProvinceSeatModalProps {
   constituency: Constituency | null;
@@ -14,7 +14,7 @@ interface ProvinceSeatModalProps {
 
 export const ProvinceSeatModal: React.FC<ProvinceSeatModalProps> = ({
   constituency,
-  parties,
+  parties: allParties,
   scenario,
   isSenado,
   onClose,
@@ -29,6 +29,9 @@ export const ProvinceSeatModal: React.FC<ProvinceSeatModalProps> = ({
   }, [scenario, constituency]);
 
   if (!constituency) return null;
+
+  // Only the parties that actually run in this province
+  const parties = allParties.filter((p) => isPartyEligible(isSenado, p.id, constituency.id));
 
   // Calculate province totals
   let totalAssignedInProv = 0;

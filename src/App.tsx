@@ -6,6 +6,8 @@ import {
   PROVINCIAS_SENADO,
   BASE_CONGRESO,
   BASE_SENADO,
+  isPartyEligible,
+  migrateCongresoScenario,
   ScenarioData,
   Party,
   Constituency
@@ -47,7 +49,7 @@ export default function App() {
   const [congresoScenario, setCongresoScenario] = useState<ScenarioData>(() => {
     try {
       const raw = localStorage.getItem(LS_CONGRESO);
-      if (raw) return JSON.parse(raw);
+      if (raw) return migrateCongresoScenario(JSON.parse(raw));
     } catch {}
     return JSON.parse(JSON.stringify(BASE_CONGRESO));
   });
@@ -203,6 +205,7 @@ export default function App() {
     (constituencyId: string, partyId: string, rawVal: number) => {
       const c = constituencies.find((x) => x.id === constituencyId);
       if (!c) return;
+      if (!isPartyEligible(!isCongreso, partyId, constituencyId)) return;
 
       const provData = activeScenario[constituencyId] || {};
       let otherSum = 0;
@@ -224,7 +227,7 @@ export default function App() {
         return next;
       });
     },
-    [constituencies, activeScenario, parties, setActiveScenario]
+    [constituencies, activeScenario, parties, setActiveScenario, isCongreso]
   );
 
   // Toggle party in coalition builder
@@ -271,7 +274,12 @@ export default function App() {
 
           cells.forEach((cellVal, colIdx) => {
             const pIdx = startPartyIndex + colIdx;
-            if (pIdx < parties.length && cellVal.trim() !== '' && !isNaN(Number(cellVal))) {
+            if (
+              pIdx < parties.length &&
+              isPartyEligible(!isCongreso, parties[pIdx].id, targetConst.id) &&
+              cellVal.trim() !== '' &&
+              !isNaN(Number(cellVal))
+            ) {
               const val = Math.max(0, parseInt(cellVal, 10) || 0);
               provData[parties[pIdx].id] = Math.min(val, targetConst.maxPerParty);
             }
@@ -294,7 +302,7 @@ export default function App() {
 
       setStatusMessage('Datos pegados desde el portapapeles.');
     },
-    [constituencies, parties, setActiveScenario]
+    [constituencies, parties, setActiveScenario, isCongreso]
   );
 
   // Action handlers
@@ -379,7 +387,13 @@ export default function App() {
         constituencies,
         parties
       );
-      setActiveScenario(newScenario);
+      const cleaned: ScenarioData = {};
+      Object.entries(newScenario).forEach(([provId, seats]) => {
+        cleaned[provId] = Object.fromEntries(
+          Object.entries(seats).filter(([pid]) => isPartyEligible(!isCongreso, pid, provId))
+        );
+      });
+      setActiveScenario(cleaned);
       let msg = `Importadas ${rowCount} circunscripciones.`;
       if (warnings.length) {
         msg += ` ${warnings.join(' ')}`;
