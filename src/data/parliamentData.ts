@@ -37,8 +37,7 @@ const P_UPC: Party = { id: 'UPC', name: 'UPC', color: '#c2255c', fullName: 'Unid
 
 export const PARTIES_CONGRESO: Party[] = [
   P_PP, P_PSOE, P_VOX, P_FA, P_PODEMOS, P_ERC, P_JUNTS, P_BILDU, P_PNV, P_BNG, P_CC, P_AA,
-  P_UPN_PP, P_CFV, P_UPC,
-  P_OTROS
+  P_UPN_PP, P_CFV, P_UPC
 ];
 
 export const PARTIES_SENADO: Party[] = [
@@ -54,12 +53,23 @@ export const PARTIES_SENADO: Party[] = [
 const VALENCIAN_COMMUNITY = ['Valencia', 'Alicante', 'Castellón'];
 const CANARY_ISLANDS = ['Las_Palmas', 'Santa_Cruz_de_Tenerife'];
 const NAVARRA = ['Navarra'];
+const CATALONIA = ['Barcelona', 'Girona', 'Lleida', 'Tarragona'];
+const BASQUE_COUNTRY = ['Álava', 'Bizkaia', 'Gipuzkoa'];
+const GALICIA = ['A_Coruña', 'Lugo', 'Ourense', 'Pontevedra'];
+const ANDALUSIA = ['Almería', 'Cádiz', 'Córdoba', 'Granada', 'Huelva', 'Jaén', 'Málaga', 'Sevilla'];
 
 /** Parties that only run in these provinces. */
 const ONLY_IN: Record<string, string[]> = {
   'C-FV': VALENCIAN_COMMUNITY,
   UPC: CANARY_ISLANDS,
-  'UPN-PP': NAVARRA
+  'UPN-PP': NAVARRA,
+  ERC: CATALONIA,
+  Junts: CATALONIA,
+  PNV: BASQUE_COUNTRY,
+  'EH Bildu': [...BASQUE_COUNTRY, ...NAVARRA],
+  BNG: GALICIA,
+  CC: CANARY_ISLANDS,
+  AA: ANDALUSIA
 };
 
 /** Parties that run everywhere except in these provinces (their coalition runs instead). */
@@ -84,6 +94,12 @@ export const ineligibleReason = (partyId: string): string => {
   if (partyId === 'UPC') return 'Solo se presenta en Canarias';
   if (partyId === 'UPN-PP') return 'Solo se presenta en Navarra';
   if (partyId === 'PP') return 'En Navarra concurre como UPN-PP';
+  if (partyId === 'ERC' || partyId === 'Junts') return 'Solo se presenta en Cataluña';
+  if (partyId === 'PNV') return 'Solo se presenta en Euskadi';
+  if (partyId === 'EH Bildu') return 'Solo se presenta en Euskadi y Navarra';
+  if (partyId === 'BNG') return 'Solo se presenta en Galicia';
+  if (partyId === 'CC') return 'Solo se presenta en Canarias';
+  if (partyId === 'AA') return 'Solo se presenta en Andalucía';
   return 'Aquí concurre dentro de una coalición';
 };
 
@@ -104,7 +120,7 @@ export const migrateCongresoScenario = (scenario: ScenarioData): ScenarioData =>
       if (VALENCIAN_COMMUNITY.includes(provId) && ['FA', 'Podemos', 'Compromís'].includes(pid)) id = 'C-FV';
       else if (CANARY_ISLANDS.includes(provId) && ['FA', 'Podemos'].includes(pid)) id = 'UPC';
       else if (NAVARRA.includes(provId) && ['PP', 'UPN'].includes(pid)) id = 'UPN-PP';
-      const known = validIds.has(id) || !['Compromís', 'UPN'].includes(id);
+      const known = validIds.has(id) || !['Compromís', 'UPN', 'Otros'].includes(id);
       if (!known || !isPartyEligible(false, id, provId)) return;
       target[id] = (target[id] || 0) + n;
     });
