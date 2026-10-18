@@ -18,7 +18,7 @@ export const PARTIES_CONGRESO: Party[] = [
   { id: 'PP', name: 'PP', color: '#0b5ea8' },
   { id: 'PSOE', name: 'PSOE', color: '#e30613' },
   { id: 'Vox', name: 'Vox', color: '#5fb02e' },
-  { id: 'FA', name: 'FA', color: '#85739a', fullName: 'Sumar' },
+  { id: 'FA', name: 'FA', color: '#f03c01', fullName: 'Sumar' },
   { id: 'Podemos', name: 'Podemos', color: '#8f63f0' },
   { id: 'ERC', name: 'ERC', color: '#f5a623' },
   { id: 'Junts', name: 'Junts', color: '#1ec1b0' },
