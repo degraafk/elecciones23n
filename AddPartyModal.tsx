@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
+import { ModalShell } from './ModalShell';
 import { Party } from '../data/parliamentData';
 
 interface AddPartyModalProps {
@@ -46,13 +46,7 @@ export const AddPartyModal: React.FC<AddPartyModalProps> = ({
       setAbbreviation('');
       setColor(PRESET_COLORS[Math.floor(Math.random() * PRESET_COLORS.length)]);
       setError('');
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
     }
-    return () => {
-      document.body.style.overflow = '';
-    };
   }, [isOpen]);
 
   // Close on Escape key press
@@ -100,16 +94,8 @@ export const AddPartyModal: React.FC<AddPartyModalProps> = ({
     onClose();
   };
 
-  return createPortal(
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in-view"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="add-party-title"
-    >
+  return (
+    <ModalShell onClose={onClose} labelledBy="add-party-title">
       <div
         className="relative w-full max-w-[440px] bg-white rounded-2xl border border-[#e9e7e0] shadow-[0_25px_50px_-12px_rgba(20,20,20,0.25)] overflow-hidden flex flex-col max-h-[88vh] text-left"
         onClick={(e) => e.stopPropagation()}
@@ -294,7 +280,6 @@ export const AddPartyModal: React.FC<AddPartyModalProps> = ({
           </div>
         </form>
       </div>
-    </div>,
-    document.body
+    </ModalShell>
   );
 };
