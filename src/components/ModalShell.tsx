@@ -1,18 +1,16 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 /**
- * Shared popup wrapper. Two display modes, chosen when the popup opens:
+ * Popover that opens right where the user clicked.
  *
- * 1) "fixed"    – normal website: overlay fixed to the screen, panel centred.
- * 2) "anchored" – page embedded in an iframe that is as tall as the whole page
- *                 (Google Sites, Notion, AI Studio preview...). There the
- *                 "screen" is the entire page, so a centred popup lands in the
- *                 middle of the page, far from the user. Instead the panel is
- *                 placed next to where the user last clicked.
+ * - Placed in PAGE coordinates next to the last click, kept inside the page and
+ *   the visible window. Works in a normal tab, in an iframe and on mobile.
+ * - Opens with a quick "grow out of the click" animation and closes with a
+ *   short fade. Children receive a `close` function that plays the exit
+ *   animation before calling `onClose`.
  */
 
-// Remember where the user last pressed (page coordinates).
 let lastPress: { x: number; y: number } | null = null;
 if (typeof window !== 'undefined') {
   window.addEventListener(
@@ -24,114 +22,141 @@ if (typeof window !== 'undefined') {
   );
 }
 
-const docHeight = () =>
-  Math.max(
-    document.documentElement.scrollHeight,
-    document.body ? document.body.scrollHeight : 0
-  );
+const pageSize = () => ({
+  w: Math.max(document.documentElement.clientWidth, 320),
+  h: Math.max(document.documentElement.scrollHeight, document.body.scrollHeight)
+});
 
-const isEmbeddedFullHeight = () => {
-  try {
-    const embedded = window.self !== window.top;
-    return embedded && docHeight() - window.innerHeight < 40;
-  } catch {
-    return true; // cross-origin frame: treat as embedded
-  }
-};
+const EXIT_MS = 130;
+
+const CSS = `
+@keyframes msPanelIn {
+  from { opacity: 0; transform: translateY(10px) scale(.92); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes msPanelOut {
+  from { opacity: 1; transform: none; }
+  to   { opacity: 0; transform: translateY(6px) scale(.97); }
+}
+@keyframes msDimIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes msDimOut { from { opacity: 1; } to { opacity: 0; } }
+@keyframes msRowIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: none; }
+}
+.ms-row { animation: msRowIn 260ms cubic-bezier(.16,1,.3,1) backwards; }
+@media (prefers-reduced-motion: reduce) {
+  .ms-panel, .ms-dim, .ms-row { animation: none !important; }
+}
+`;
 
 interface ModalShellProps {
   onClose: () => void;
   labelledBy: string;
-  children: React.ReactNode;
+  children: (close: () => void) => React.ReactNode;
 }
 
 export const ModalShell: React.FC<ModalShellProps> = ({ onClose, labelledBy, children }) => {
-  const [anchored] = useState(isEmbeddedFullHeight);
-  const [docH] = useState(docHeight);
-  const [top, setTop] = useState<number | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<{ top: number; left: number; ox: number; oy: number } | null>(null);
+  const [pageH, setPageH] = useState(() => pageSize().h);
+  const [closing, setClosing] = useState(false);
+  const closingRef = useRef(false);
 
-  // Escape closes
+  const close = useCallback(() => {
+    if (closingRef.current) return;
+    closingRef.current = true;
+    setClosing(true);
+    window.setTimeout(onClose, EXIT_MS);
+  }, [onClose]);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') close();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  }, [close]);
 
-  // Lock page scroll only in normal (fixed) mode
-  useEffect(() => {
-    if (anchored) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [anchored]);
-
-  // Anchored mode: vertically centre the panel on the last click, kept inside the page
   useLayoutEffect(() => {
-    if (!anchored || !panelRef.current) return;
     const el = panelRef.current;
+    if (!el) return;
     const place = () => {
+      const p = pageSize();
+      setPageH(p.h);
+      const w = el.offsetWidth;
       const h = el.offsetHeight;
-      const y = lastPress ? lastPress.y : docH / 2;
-      const max = Math.max(12, docH - h - 12);
-      setTop(Math.min(Math.max(y - h / 2, 12), max));
+      const cx = lastPress ? lastPress.x : p.w / 2;
+      const cy = lastPress ? lastPress.y : window.scrollY + window.innerHeight / 2;
+
+      const visTop = window.scrollY;
+      const visBottom = Math.min(window.scrollY + window.innerHeight, p.h);
+
+      const left = Math.min(Math.max(cx - w / 2, 12), Math.max(12, p.w - w - 12));
+      let top = cy - h / 2;
+      top = Math.min(top, visBottom - h - 12);
+      top = Math.max(top, visTop + 12, 12);
+
+      // animation grows out of the click point
+      setPos((prev) => {
+        const next = { top, left, ox: Math.round(cx - left), oy: Math.round(cy - top) };
+        return prev && prev.top === next.top && prev.left === next.left ? prev : next;
+      });
     };
     place();
     const ro = new ResizeObserver(place);
     ro.observe(el);
-    return () => ro.disconnect();
-  }, [anchored, docH]);
+    window.addEventListener('resize', place);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', place);
+    };
+  }, []);
 
-  const close = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) onClose();
-  };
-
-  if (!anchored) {
-    return createPortal(
-      <div
-        className="fixed inset-0 flex items-center justify-center p-4 bg-black/40"
-        style={{ zIndex: 1000 }}
-        onClick={close}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={labelledBy}
-      >
-        {children}
-      </div>,
-      document.body
-    );
-  }
+  const ease = 'cubic-bezier(.16,1,.3,1)';
 
   return createPortal(
     <div
-      className="bg-black/40"
-      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: docH, zIndex: 1000 }}
-      onClick={close}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={labelledBy}
+      className="ms-dim"
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: pageH,
+        zIndex: 1000,
+        background: 'rgba(23,23,26,.14)',
+        animation: pos ? `${closing ? 'msDimOut' : 'msDimIn'} ${closing ? EXIT_MS : 180}ms ease forwards` : undefined,
+        opacity: pos ? undefined : 0
+      }}
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) close();
+      }}
     >
+      <style>{CSS}</style>
       <div
         ref={panelRef}
+        className="ms-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={labelledBy}
         style={{
           position: 'absolute',
-          left: 0,
-          right: 0,
-          top: top ?? 0,
-          visibility: top === null ? 'hidden' : 'visible',
-          display: 'flex',
-          justifyContent: 'center',
-          padding: '0 16px',
-          pointerEvents: 'none'
+          top: pos ? pos.top : 0,
+          left: pos ? pos.left : 0,
+          width: 'min(440px, calc(100vw - 24px))',
+          visibility: pos ? 'visible' : 'hidden',
+          transformOrigin: pos ? `${pos.ox}px ${pos.oy}px` : undefined,
+          boxShadow: '0 0 0 1px rgba(23,23,26,.08), 0 30px 70px -10px rgba(23,23,26,.45)',
+          borderRadius: 16,
+          animation: pos
+            ? closing
+              ? `msPanelOut ${EXIT_MS}ms ease-in forwards`
+              : `msPanelIn 240ms ${ease} both`
+            : undefined
         }}
       >
-        <div style={{ pointerEvents: 'auto', width: '100%', display: 'flex', justifyContent: 'center' }}>
-          {children}
-        </div>
+        {children(close)}
       </div>
     </div>,
     document.body

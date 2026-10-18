@@ -62,6 +62,7 @@ export const ProvinceSeatModal: React.FC<ProvinceSeatModalProps> = ({
 
   return (
     <ModalShell onClose={onClose} labelledBy="modal-title">
+      {(close) => (
       <div
         className="relative w-full max-w-[440px] bg-white rounded-2xl border border-[#e9e7e0] shadow-[0_25px_50px_-12px_rgba(20,20,20,0.25)] overflow-hidden flex flex-col max-h-[85vh] text-left"
         onClick={(e) => e.stopPropagation()}
@@ -86,7 +87,7 @@ export const ProvinceSeatModal: React.FC<ProvinceSeatModalProps> = ({
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={close}
             className="w-8 h-8 rounded-lg flex items-center justify-center text-[#77756d] hover:text-[#17171a] hover:bg-black/5 active:scale-95 transition-all cursor-pointer text-lg leading-none"
             aria-label="Cerrar ventana"
           >
@@ -150,7 +151,7 @@ export const ProvinceSeatModal: React.FC<ProvinceSeatModalProps> = ({
 
         {/* Scrollable Party List (avoids overly long popups) */}
         <div className="p-3 overflow-y-auto max-h-[300px] scrollbar-thin divide-y divide-[#e9e7e0]/70 flex-1">
-          {filteredParties.map((p) => {
+          {filteredParties.map((p, idx) => {
             const currentVal = provData[p.id] || 0;
             const hasSeats = currentVal > 0;
             const canIncrement = remainingSeats > 0 && currentVal < constituency.maxPerParty;
@@ -159,7 +160,8 @@ export const ProvinceSeatModal: React.FC<ProvinceSeatModalProps> = ({
             return (
               <div
                 key={p.id}
-                className={`py-2 px-2 flex items-center justify-between gap-3 rounded-lg transition-colors ${
+                style={{ animationDelay: `${Math.min(idx, 9) * 24 + 90}ms` }}
+                className={`ms-row py-2 px-2 flex items-center justify-between gap-3 rounded-lg transition-colors ${
                   hasSeats ? 'bg-[#fafaf8]' : 'hover:bg-[#fafaf8]/60'
                 }`}
               >
@@ -241,13 +243,14 @@ export const ProvinceSeatModal: React.FC<ProvinceSeatModalProps> = ({
           </button>
           <button
             type="button"
-            onClick={onClose}
+            onClick={close}
             className="text-xs font-semibold px-4 py-2 rounded-lg bg-[#17171a] text-white hover:bg-[#34343a] active:scale-95 transition-all cursor-pointer"
           >
             Listo
           </button>
         </div>
       </div>
+      )}
     </ModalShell>
   );
 };

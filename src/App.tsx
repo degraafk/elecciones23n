@@ -23,6 +23,9 @@ import {
   parseSpreadsheetFile
 } from './utils/parliamentUtils';
 
+const CREST_CONGRESO = `${import.meta.env.BASE_URL}crest-congreso.png`;
+const CREST_SENADO = `${import.meta.env.BASE_URL}crest-senado.png`;
+
 const LS_CONGRESO = 'congreso-tabla-v2';
 const LS_SENADO = 'senado-tabla-v1';
 const LS_MODE = 'congreso-modo';
@@ -393,13 +396,21 @@ export default function App() {
   return (
     <main className="max-w-[1360px] mx-auto py-8 px-5 pb-16 animate-in-view">
       {/* Header Title */}
-      <div className="flex items-baseline flex-wrap gap-x-3 gap-y-1 mb-6">
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#17171a] leading-tight m-0">
-          {isCongreso ? 'Congreso de los Diputados' : 'Senado de España'}
-        </h1>
-        <span className="text-sm font-semibold text-[#77756d]">
-          · Simulador 29-N 2026
-        </span>
+      <div className="flex items-center gap-4 mb-6">
+        <img
+          key={mode}
+          src={isCongreso ? CREST_CONGRESO : CREST_SENADO}
+          alt={isCongreso ? 'Escudo del Congreso de los Diputados' : 'Escudo del Senado de España'}
+          className="h-14 sm:h-[72px] w-auto shrink-0 animate-in-view"
+        />
+        <div>
+          <p className="m-0 mb-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#77756d]">
+            Simulador 29-N 2026
+          </p>
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#17171a] leading-tight m-0">
+            {isCongreso ? 'Congreso de los Diputados' : 'Senado de España'}
+          </h1>
+        </div>
       </div>
 
       {/* Mode Switcher Tabs */}
@@ -409,12 +420,13 @@ export default function App() {
           role="tab"
           aria-selected={isCongreso}
           onClick={() => handleSetMode('c')}
-          className={`py-2 px-5 rounded-xl font-semibold text-sm transition-all cursor-pointer ${
+          className={`inline-flex items-center gap-2 py-2 px-5 rounded-xl font-semibold text-sm transition-all cursor-pointer ${
             isCongreso
               ? 'bg-[#17171a] text-white shadow-xs'
               : 'text-[#77756d] hover:bg-black/5 hover:text-[#17171a]'
           }`}
         >
+          <img src={CREST_CONGRESO} alt="" className="h-5 w-auto" />
           Congreso
         </button>
         <button
@@ -422,12 +434,13 @@ export default function App() {
           role="tab"
           aria-selected={!isCongreso}
           onClick={() => handleSetMode('s')}
-          className={`py-2 px-5 rounded-xl font-semibold text-sm transition-all cursor-pointer ${
+          className={`inline-flex items-center gap-2 py-2 px-5 rounded-xl font-semibold text-sm transition-all cursor-pointer ${
             !isCongreso
               ? 'bg-[#17171a] text-white shadow-xs'
               : 'text-[#77756d] hover:bg-black/5 hover:text-[#17171a]'
           }`}
         >
+          <img src={CREST_SENADO} alt="" className="h-5 w-auto" />
           Senado
         </button>
       </div>

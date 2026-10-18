@@ -49,16 +49,6 @@ export const AddPartyModal: React.FC<AddPartyModalProps> = ({
     }
   }, [isOpen]);
 
-  // Close on Escape key press
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
-
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -96,6 +86,7 @@ export const AddPartyModal: React.FC<AddPartyModalProps> = ({
 
   return (
     <ModalShell onClose={onClose} labelledBy="add-party-title">
+      {(close) => (
       <div
         className="relative w-full max-w-[440px] bg-white rounded-2xl border border-[#e9e7e0] shadow-[0_25px_50px_-12px_rgba(20,20,20,0.25)] overflow-hidden flex flex-col max-h-[88vh] text-left"
         onClick={(e) => e.stopPropagation()}
@@ -112,7 +103,7 @@ export const AddPartyModal: React.FC<AddPartyModalProps> = ({
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={close}
             className="w-8 h-8 rounded-lg flex items-center justify-center text-[#77756d] hover:text-[#17171a] hover:bg-black/5 active:scale-95 transition-all cursor-pointer text-lg leading-none"
             aria-label="Cerrar ventana"
           >
@@ -266,7 +257,7 @@ export const AddPartyModal: React.FC<AddPartyModalProps> = ({
           <div className="pt-3 border-t border-[#e9e7e0] flex items-center justify-end gap-2">
             <button
               type="button"
-              onClick={onClose}
+              onClick={close}
               className="text-xs font-semibold px-4 py-2 rounded-xl border border-[#e9e7e0] bg-white text-[#17171a] hover:bg-[#fafaf8] active:scale-95 transition-all cursor-pointer"
             >
               Cancelar
@@ -280,6 +271,7 @@ export const AddPartyModal: React.FC<AddPartyModalProps> = ({
           </div>
         </form>
       </div>
+      )}
     </ModalShell>
   );
 };
