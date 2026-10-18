@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { ModalShell } from './ModalShell';
 import { Party, Constituency, ScenarioData } from '../data/parliamentData';
 
 interface ProvinceSeatModalProps {
@@ -21,29 +22,6 @@ export const ProvinceSeatModal: React.FC<ProvinceSeatModalProps> = ({
   onClearProvince
 }) => {
   const [partySearch, setPartySearch] = useState('');
-
-  // Close on Escape key press
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
-
-  // Prevent background scrolling while modal is open
-  useEffect(() => {
-    if (constituency) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [constituency]);
 
   const provData = useMemo(() => {
     if (!constituency) return {};
@@ -83,15 +61,7 @@ export const ProvinceSeatModal: React.FC<ProvinceSeatModalProps> = ({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in-view"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="modal-title"
-    >
+    <ModalShell onClose={onClose} labelledBy="modal-title">
       <div
         className="relative w-full max-w-[440px] bg-white rounded-2xl border border-[#e9e7e0] shadow-[0_25px_50px_-12px_rgba(20,20,20,0.25)] overflow-hidden flex flex-col max-h-[85vh] text-left"
         onClick={(e) => e.stopPropagation()}
@@ -278,6 +248,6 @@ export const ProvinceSeatModal: React.FC<ProvinceSeatModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </ModalShell>
   );
 };
