@@ -223,12 +223,18 @@ export const SeatsTable: React.FC<SeatsTableProps> = ({
 
                     if (!isPartyEligible(isSenado, p.id, c.id)) {
                       return (
-                        <td
-                          key={p.id}
-                          className="p-1.5 text-center whitespace-nowrap text-[#c9c7bf] select-none"
-                          title={`${p.name} no se presenta en ${c.name}. ${ineligibleReason(p.id)}`}
-                        >
-                          <span className="inline-block w-full rounded-lg bg-[#f4f4f1] py-1.5">–</span>
+                        <td key={p.id} className="p-1.5 text-center whitespace-nowrap select-none">
+                          <div
+                            className="inline-flex items-center justify-center w-[76px] h-[32px] rounded-lg border border-[#d6d4cb] text-[#a19e93] text-xs font-semibold cursor-not-allowed"
+                            style={{
+                              backgroundImage:
+                                'repeating-linear-gradient(135deg, #e9e7e0 0 5px, #f6f5f1 5px 10px)'
+                            }}
+                            title={`${p.name} no se presenta en ${c.name}. ${ineligibleReason(p.id)}`}
+                            aria-label={`${p.name} no se presenta en ${c.name}`}
+                          >
+                            –
+                          </div>
                         </td>
                       );
                     }

@@ -233,12 +233,16 @@ export default function App() {
       .filter((p) => selectedParties.has(p.id) && (partyTotals[p.id] || 0) > 0)
       .sort((a, b) => (partyTotals[b.id] || 0) - (partyTotals[a.id] || 0));
     const seats = members.reduce((sum, p) => sum + (partyTotals[p.id] || 0), 0);
-    return { names: members.map((p) => p.name), seats };
+    return { names: members.map((p) => p.name), ids: members.map((p) => p.id), seats };
   }, [parties, selectedParties, partyTotals]);
 
+  // Link people can open. In production it goes through /s, which gives X the preview image
+  // of this exact scenario and then opens the simulator with it loaded.
   const buildShareUrl = () => {
     const hash = encodeShare(mode, constituencies, activeScenario, customParties);
-    return `${window.location.origin}${window.location.pathname}${hash}`;
+    if (import.meta.env.DEV) return `${window.location.origin}${window.location.pathname}${hash}`;
+    const k = coalition.ids.length ? `&k=${encodeURIComponent(coalition.ids.join(','))}` : '';
+    return `${window.location.origin}/s?d=${encodeURIComponent(hash.slice(1))}${k}`;
   };
 
   const handleShareX = () => {
@@ -250,14 +254,14 @@ export default function App() {
         : null
     });
     window.open(xIntentUrl(text, buildShareUrl()), '_blank', 'noopener,noreferrer');
-    setStatusMessage('Se ha abierto X con tu resultado. Si quieres añadir la imagen, usa "Copiar imagen" y pégala en el post.');
+    setStatusMessage('Se ha abierto X con tu resultado. La imagen sale sola al publicar, a partir del enlace.');
   };
 
   const handleCopyLink = async () => {
     const url = buildShareUrl();
     try {
       await navigator.clipboard.writeText(url);
-      setStatusMessage('Enlace copiado. Quien lo abra verá exactamente tu escenario.');
+      setStatusMessage('Enlace copiado. Quien lo abra verá tu escenario, y en X saldrá con su imagen.');
     } catch {
       window.prompt('Copia este enlace:', url);
     }
