@@ -2,8 +2,8 @@ import { Party } from '../data/parliamentData';
 import { computeHemicycle, seatOwners } from './hemicycle';
 
 export const CARD_W = 1600;
-export const CARD_H = 960;
-const SCALE = 2; // PNG is rendered at 2x so it stays sharp when zoomed or printed
+export const CARD_H = 1600; // square
+const SCALE = 1.5; // PNG is rendered at 1.5x (2400 x 2400) so it stays sharp when zoomed or printed
 
 export interface ShareCardData {
   title: string;
@@ -80,67 +80,53 @@ export function renderShareCard(ctx: CanvasRenderingContext2D, W: number, H: num
   }
 
   // map, large on the left
-  const mapX = 40;
-  const mapY = 170;
-  const mapW = 830;
+  const mapW = 900;
   const mapH = (mapW * 790) / 870;
-  if (d.map) ctx.drawImage(d.map, mapX, mapY, mapW, mapH);
+  if (d.map) ctx.drawImage(d.map, 40, 165, mapW, mapH);
 
-  // hemicycle, top right
-  const colX = 920;
-  const colW = 616;
-  const layout = computeHemicycle(d.totalSeats, 300);
-  const sc = colW / layout.width;
-  const hy = 196;
-  const owners = seatOwners(d.totalSeats, d.parties, d.partyTotals);
-  const colorOf = (id: string | null) => d.parties.find((p) => p.id === id)?.color ?? '#e6e4dc';
   const dim = d.highlight.size > 0;
 
+  // every party with seats, regular weight, filling the column next to the map
+  const rows = d.parties
+    .map((p) => ({ p, n: d.partyTotals[p.id] || 0 }))
+    .filter((r) => r.n > 0)
+    .sort((a, b) => b.n - a.n);
+  const listX = 1010;
+  const listW = 530;
+  const rowH = Math.min(54, 790 / Math.max(rows.length, 1));
+  const fs = Math.min(32, rowH * 0.64);
+  let ly = 215 + rowH * 0.7;
+  rows.forEach(({ p, n }) => {
+    ctx.globalAlpha = dim && !d.highlight.has(p.id) ? 0.35 : 1;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(listX + fs * 0.5, ly - fs * 0.34, fs * 0.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#17171a';
+    ctx.font = `400 ${fs}px ${FONT}`;
+    ctx.fillText(fit(ctx, p.name, listW - 140), listX + fs * 1.4, ly);
+    ctx.textAlign = 'right';
+    ctx.fillText(String(n), listX + listW, ly);
+    ctx.textAlign = 'left';
+    ly += rowH;
+  });
+  ctx.globalAlpha = 1;
+
+  // hemicycle, large across the bottom (no text inside)
+  const hw = 1060;
+  const layout = computeHemicycle(d.totalSeats, 300);
+  const sc = hw / layout.width;
+  const hx = (W - hw) / 2;
+  const hy = 1010;
+  const owners = seatOwners(d.totalSeats, d.parties, d.partyTotals);
+  const colorOf = (id: string | null) => d.parties.find((p) => p.id === id)?.color ?? '#e6e4dc';
   layout.seats.forEach((s, i) => {
     const owner = owners[i];
     ctx.globalAlpha = dim && !(owner && d.highlight.has(owner)) ? 0.2 : 1;
     ctx.fillStyle = colorOf(owner);
     ctx.beginPath();
-    ctx.arc(colX + s.x * sc, hy + s.y * sc, layout.dot * sc, 0, Math.PI * 2);
+    ctx.arc(hx + s.x * sc, hy + s.y * sc, layout.dot * sc, 0, Math.PI * 2);
     ctx.fill();
-  });
-  ctx.globalAlpha = 1;
-
-  const assigned = owners.filter((o) => o !== null).length;
-  const mx = colX + layout.cx * sc;
-  const my = hy + layout.cy * sc;
-  ctx.textAlign = 'center';
-  ctx.fillStyle = '#17171a';
-  ctx.font = `700 64px ${FONT}`;
-  ctx.fillText(String(assigned), mx, my - 38);
-  ctx.fillStyle = '#77756d';
-  ctx.font = `500 20px ${FONT}`;
-  ctx.fillText(`de ${d.totalSeats} escaños`, mx, my - 12);
-  ctx.font = `500 17px ${FONT}`;
-  ctx.fillText(`${d.majorityName}: ${d.targetSeats}`, mx, my + 12);
-  ctx.textAlign = 'left';
-
-  // party list
-  const rows = d.parties
-    .map((p) => ({ p, n: d.partyTotals[p.id] || 0 }))
-    .filter((r) => r.n > 0)
-    .sort((a, b) => b.n - a.n)
-    .slice(0, 8);
-  let ly = 606;
-  rows.forEach(({ p, n }) => {
-    ctx.globalAlpha = dim && !d.highlight.has(p.id) ? 0.35 : 1;
-    ctx.fillStyle = p.color;
-    ctx.beginPath();
-    ctx.arc(colX + 14, ly - 10, 12, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#17171a';
-    ctx.font = `700 29px ${FONT}`;
-    ctx.fillText(fit(ctx, p.name, 300), colX + 42, ly);
-    ctx.textAlign = 'right';
-    ctx.font = `700 31px ${FONT}`;
-    ctx.fillText(String(n), colX + colW, ly);
-    ctx.textAlign = 'left';
-    ly += 40;
   });
   ctx.globalAlpha = 1;
 
@@ -149,7 +135,7 @@ export function renderShareCard(ctx: CanvasRenderingContext2D, W: number, H: num
     ctx.fillStyle = '#a19e93';
     ctx.font = `500 21px ${FONT}`;
     ctx.textAlign = 'right';
-    ctx.fillText(d.host, W - 64, H - 26);
+    ctx.fillText(d.host, W - 64, H - 22);
     ctx.textAlign = 'left';
   }
 }
@@ -165,6 +151,10 @@ export function serializeMapSvg(svg: SVGSVGElement): string {
   clone.removeAttribute('style');
   clone.setAttribute('font-family', "Inter, 'Segoe UI', system-ui, Helvetica, Arial, sans-serif");
   clone.querySelector('#mapa-hover-overlay')?.remove();
+  // labels such as "Madrid (38)" lose their seat count in the image
+  clone.querySelectorAll('text').forEach((t) => {
+    t.textContent = (t.textContent || '').replace(/\s*\(\d+\)\s*$/, '');
+  });
   return new XMLSerializer().serializeToString(clone);
 }
 
