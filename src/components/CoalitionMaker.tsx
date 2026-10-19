@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Party } from '../data/parliamentData';
-import { minimalMajorities, completers } from '../utils/coalitions';
+import { Party, BLOCS } from '../data/parliamentData';
+import { completers } from '../utils/coalitions';
 
 interface CoalitionMakerProps {
   parties: Party[];
@@ -69,10 +69,14 @@ export const CoalitionMaker: React.FC<CoalitionMakerProps> = ({
 
   const isWin = coalitionSeats >= targetSeats;
 
-  const totalAssigned = parties.reduce((sum, p) => sum + (partyTotals[p.id] || 0), 0);
-  const majorities = useMemo(
-    () => minimalMajorities(parties, partyTotals, targetSeats, 6),
-    [parties, partyTotals, targetSeats]
+  // Suggested blocs: only the parties of that bloc that exist (and have seats) in this chamber
+  const blocs = useMemo(
+    () =>
+      BLOCS.map((b) => {
+        const ids = b.parties.filter((id) => parties.some((p) => p.id === id) && (partyTotals[id] || 0) > 0);
+        return { ...b, ids, seats: ids.reduce((sum, id) => sum + (partyTotals[id] || 0), 0) };
+      }),
+    [parties, partyTotals]
   );
   const finishers = useMemo(
     () => completers(parties, partyTotals, selectedParties, targetSeats),
@@ -303,53 +307,54 @@ export const CoalitionMaker: React.FC<CoalitionMakerProps> = ({
         )}
 
         <div className="flex items-baseline justify-between mb-2">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-[#17171a] m-0">Mayorías posibles</h3>
+          <h3 className="text-xs font-bold uppercase tracking-wider text-[#17171a] m-0">Coaliciones sugeridas</h3>
           <span className="text-[11px] text-[#77756d]">pulsa una para aplicarla</span>
         </div>
 
-        {majorities.length === 0 ? (
-          <p className="text-xs text-[#77756d] m-0 leading-relaxed">
-            {totalAssigned < targetSeats
-              ? `Asigna más escaños: con ${totalAssigned} todavía no hay combinaciones que lleguen a ${targetSeats}.`
-              : `Con este reparto ninguna combinación llega a ${targetSeats}.`}
-          </p>
-        ) : (
-          <div className="flex flex-col gap-1.5">
-            {majorities.map((m) => {
-              const active = m.ids.length === selectedParties.size && m.ids.every((id) => selectedParties.has(id));
-              return (
-                <button
-                  key={m.ids.join('|')}
-                  type="button"
-                  onClick={() => onSetParties(m.ids)}
-                  aria-pressed={active}
-                  className={`flex items-center gap-3 w-full text-left px-3 py-2 rounded-xl border text-xs transition-all cursor-pointer active:scale-[0.99] ${
-                    active
-                      ? 'border-[#17171a] bg-[#fafaf8]'
-                      : 'border-[#e9e7e0] bg-white hover:border-[#a19e93] hover:bg-[#fafaf8]'
+        <div className="flex flex-col gap-1.5">
+          {blocs.map((b) => {
+            const active = b.ids.length > 0 && b.ids.length === selectedParties.size && b.ids.every((id) => selectedParties.has(id));
+            const wins = b.seats >= targetSeats;
+            return (
+              <button
+                key={b.id}
+                type="button"
+                onClick={() => onSetParties(b.ids)}
+                aria-pressed={active}
+                disabled={b.ids.length === 0}
+                className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl border text-xs transition-all cursor-pointer active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed ${
+                  active
+                    ? 'border-[#17171a] bg-[#fafaf8]'
+                    : 'border-[#e9e7e0] bg-white hover:border-[#a19e93] hover:bg-[#fafaf8]'
+                }`}
+              >
+                <span className="flex -space-x-1 shrink-0">
+                  {b.ids.slice(0, 6).map((id) => (
+                    <span
+                      key={id}
+                      className="w-3.5 h-3.5 rounded-full border-2 border-white"
+                      style={{ backgroundColor: partyById(id)?.color }}
+                    />
+                  ))}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block font-semibold text-[13px] text-[#17171a]">{b.name}</span>
+                  <span className="block text-[11px] text-[#77756d] truncate">
+                    {b.ids.map((id) => partyById(id)?.name ?? id).join(', ')}
+                  </span>
+                </span>
+                <b className="tabular-nums text-sm text-[#17171a]">{b.seats}</b>
+                <span
+                  className={`text-[11px] font-semibold tabular-nums px-2 py-0.5 rounded-full whitespace-nowrap ${
+                    wins ? 'bg-[#2e8b4f] text-white' : 'bg-[#f0eee8] text-[#77756d]'
                   }`}
                 >
-                  <span className="flex -space-x-1 shrink-0">
-                    {m.ids.map((id) => (
-                      <span
-                        key={id}
-                        className="w-3.5 h-3.5 rounded-full border-2 border-white"
-                        style={{ backgroundColor: partyById(id)?.color }}
-                      />
-                    ))}
-                  </span>
-                  <span className="font-semibold text-[#17171a] truncate">
-                    {m.ids.map((id) => partyById(id)?.name ?? id).join(' + ')}
-                  </span>
-                  <b className="ml-auto tabular-nums text-[#17171a]">{m.seats}</b>
-                  <span className="text-[11px] text-[#77756d] tabular-nums w-10 text-right">
-                    +{m.seats - targetSeats}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        )}
+                  {wins ? `+${b.seats - targetSeats}` : `faltan ${targetSeats - b.seats}`}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </section>
   );

@@ -25,15 +25,15 @@ const P_BILDU: Party = { id: 'EH Bildu', name: 'EH Bildu', color: '#c8d82a' };
 const P_PNV: Party = { id: 'PNV', name: 'PNV', color: '#0f6b3a' };
 const P_BNG: Party = { id: 'BNG', name: 'BNG', color: '#7fb2e5' };
 const P_CC: Party = { id: 'CC', name: 'CC', color: '#ffd800' };
-const P_UPN: Party = { id: 'UPN', name: 'UPN', color: '#7b4f2c' };
-const P_COMPROMIS: Party = { id: 'Compromís', name: 'Compromís', color: '#ef8a4f' };
 const P_AA: Party = { id: 'AA', name: 'AA', color: '#8fdb98', fullName: 'Adelante Andalucía' };
-const P_OTROS: Party = { id: 'Otros', name: 'Otros', color: '#8a8a80' };
+const P_AHI: Party = { id: 'AHI', name: 'AHI', color: '#7a4fa3', fullName: 'Agrupación Herreña Independiente' };
+const P_ASG: Party = { id: 'ASG', name: 'ASG', color: '#d9528a', fullName: 'Agrupación Socialista Gomera' };
 
-// Congreso-only coalitions
+// Coalitions
 const P_UPN_PP: Party = { id: 'UPN-PP', name: 'UPN-PP', color: '#2b4c7e', fullName: 'Coalición UPN y PP (Navarra)' };
 const P_CFV: Party = { id: 'C-FV', name: 'C-FV', color: '#d9480f', fullName: 'Compromís-Front Valencià (FA + Compromís + Podemos)' };
 const P_UPC: Party = { id: 'UPC', name: 'UPC', color: '#c2255c', fullName: 'Unidad del Pueblo Canario (FA + Nueva Canarias + Podemos)' };
+const P_SDP: Party = { id: 'SdP', name: 'SdP', color: '#b5121b', fullName: 'Senado de Progreso (PSOE + FA, C-FV o UPC según el territorio)' };
 
 export const PARTIES_CONGRESO: Party[] = [
   P_PP, P_PSOE, P_VOX, P_FA, P_PODEMOS, P_ERC, P_JUNTS, P_BILDU, P_PNV, P_BNG, P_CC, P_AA,
@@ -41,22 +41,35 @@ export const PARTIES_CONGRESO: Party[] = [
 ];
 
 export const PARTIES_SENADO: Party[] = [
-  P_PP, P_PSOE, P_VOX, P_FA, P_PODEMOS, P_ERC, P_JUNTS, P_BILDU, P_PNV, P_BNG, P_CC, P_UPN, P_COMPROMIS, P_AA,
-  { id: 'AHI', name: 'AHI', color: '#7a4fa3', fullName: 'Agrupación Herreña Independiente' },
-  { id: 'ASG', name: 'ASG', color: '#d9528a', fullName: 'Agrupación Socialista Gomera' },
-  P_OTROS
+  P_PP, P_PSOE, P_SDP, P_VOX, P_FA, P_PODEMOS, P_ERC, P_JUNTS, P_BILDU, P_PNV, P_BNG, P_CC, P_AA,
+  P_UPN_PP, P_AHI, P_ASG, P_UPC
+];
+
+/** Suggested coalitions shown in the coalition maker (ids missing in a chamber are ignored). */
+const LEFT = ['PSOE', 'SdP', 'FA', 'Podemos', 'C-FV', 'UPC', 'ERC', 'EH Bildu', 'BNG', 'AA', 'ASG'];
+export const BLOCS: { id: string; name: string; parties: string[] }[] = [
+  { id: 'derecha', name: 'Bloque de derechas', parties: ['PP', 'Vox', 'UPN-PP'] },
+  { id: 'izquierda', name: 'Bloque de izquierdas', parties: LEFT },
+  { id: 'sanchez', name: 'Coalición Sánchez', parties: [...LEFT, 'Junts', 'PNV', 'CC'] }
 ];
 
 // ---------------------------------------------------------------------------
-// Where each party runs (Congreso only; the Senado has no restrictions)
+// Where each party runs
 // ---------------------------------------------------------------------------
 const VALENCIAN_COMMUNITY = ['Valencia', 'Alicante', 'Castellón'];
-const CANARY_ISLANDS = ['Las_Palmas', 'Santa_Cruz_de_Tenerife'];
+const CANARY_ISLANDS = ['Las_Palmas', 'Santa_Cruz_de_Tenerife']; // Congreso provinces
 const NAVARRA = ['Navarra'];
 const CATALONIA = ['Barcelona', 'Girona', 'Lleida', 'Tarragona'];
 const BASQUE_COUNTRY = ['Álava', 'Bizkaia', 'Gipuzkoa'];
 const GALICIA = ['A_Coruña', 'Lugo', 'Ourense', 'Pontevedra'];
 const ANDALUSIA = ['Almería', 'Cádiz', 'Córdoba', 'Granada', 'Huelva', 'Jaén', 'Málaga', 'Sevilla'];
+
+// Senado circunscripciones
+const EXTREMADURA = ['Badajoz', 'Cáceres'];
+const SENADO_CANARIAS = ['Gran_Canaria', 'Tenerife', 'Lanzarote', 'Fuerteventura', 'La_Palma', 'El_Hierro', 'La_Gomera'];
+const SENADO_CANARIAS_SIN_GOMERA = SENADO_CANARIAS.filter((id) => id !== 'La_Gomera');
+// Where SdP does not run and the left goes separately
+const SDP_FUERA = [...CATALONIA, ...EXTREMADURA, 'Sevilla', ...SENADO_CANARIAS_SIN_GOMERA];
 
 /** Parties that only run in these provinces. */
 const ONLY_IN: Record<string, string[]> = {
@@ -79,17 +92,43 @@ const NOT_IN: Record<string, string[]> = {
   PP: NAVARRA
 };
 
+const ONLY_IN_SENADO: Record<string, string[]> = {
+  'UPN-PP': NAVARRA,
+  ERC: CATALONIA,
+  Junts: CATALONIA,
+  PNV: BASQUE_COUNTRY,
+  'EH Bildu': [...BASQUE_COUNTRY, ...NAVARRA],
+  BNG: GALICIA,
+  CC: SENADO_CANARIAS,
+  AA: ANDALUSIA,
+  AHI: ['El_Hierro'],
+  ASG: ['La_Gomera'],
+  // inside SdP everywhere else
+  PSOE: SDP_FUERA,
+  FA: [...CATALONIA, ...EXTREMADURA, 'Sevilla'],
+  UPC: SENADO_CANARIAS_SIN_GOMERA
+};
+
+const NOT_IN_SENADO: Record<string, string[]> = {
+  SdP: SDP_FUERA,
+  Podemos: [...VALENCIAN_COMMUNITY, ...SENADO_CANARIAS],
+  PP: NAVARRA
+};
+
 export const isPartyEligible = (isSenado: boolean, partyId: string, constituencyId: string): boolean => {
-  if (isSenado) return true;
-  const only = ONLY_IN[partyId];
+  const only = (isSenado ? ONLY_IN_SENADO : ONLY_IN)[partyId];
   if (only) return only.includes(constituencyId);
-  const not = NOT_IN[partyId];
+  const not = (isSenado ? NOT_IN_SENADO : NOT_IN)[partyId];
   if (not) return !not.includes(constituencyId);
   return true;
 };
 
 /** Short note shown where a party does not run. */
-export const ineligibleReason = (partyId: string): string => {
+export const ineligibleReason = (partyId: string, isSenado = false): string => {
+  if (isSenado && partyId === 'SdP') return 'Aquí la izquierda va por separado';
+  if (isSenado && ['PSOE', 'FA', 'UPC'].includes(partyId)) return 'Aquí concurre dentro de Senado de Progreso (SdP)';
+  if (partyId === 'AHI') return 'Solo se presenta en El Hierro';
+  if (partyId === 'ASG') return 'Solo se presenta en La Gomera';
   if (partyId === 'C-FV') return 'Solo se presenta en la Comunitat Valenciana';
   if (partyId === 'UPC') return 'Solo se presenta en Canarias';
   if (partyId === 'UPN-PP') return 'Solo se presenta en Navarra';
@@ -103,31 +142,50 @@ export const ineligibleReason = (partyId: string): string => {
   return 'Aquí concurre dentro de una coalición';
 };
 
-/**
- * Converts a Congreso scenario saved with the old party list into the current one
- * (FA/Compromís/Podemos in the Valencian Community become C-FV, FA/Podemos in the
- * Canary Islands become UPC, PP/UPN in Navarra become UPN-PP) and drops any seats
- * for parties that do not run in that province.
- */
-export const migrateCongresoScenario = (scenario: ScenarioData): ScenarioData => {
-  const validIds = new Set(PARTIES_CONGRESO.map((p) => p.id));
+const REMOVED_PARTIES = ['Compromís', 'UPN', 'Otros'];
+
+function migrateScenario(scenario: ScenarioData, isSenado: boolean): ScenarioData {
+  const constituencies = isSenado ? PROVINCIAS_SENADO : PROVINCIAS_CONGRESO;
+  const byId = new Map(constituencies.map((c) => [c.id, c]));
   const out: ScenarioData = {};
+
   Object.entries(scenario || {}).forEach(([provId, seats]) => {
+    const c = byId.get(provId);
+    if (!c) return;
     const target: Record<string, number> = {};
+
     Object.entries(seats || {}).forEach(([pid, n]) => {
       if (!n) return;
       let id = pid;
-      if (VALENCIAN_COMMUNITY.includes(provId) && ['FA', 'Podemos', 'Compromís'].includes(pid)) id = 'C-FV';
+      if (NAVARRA.includes(provId) && ['PP', 'UPN'].includes(pid)) id = 'UPN-PP';
+      else if (isSenado) {
+        if (['PSOE', 'FA', 'C-FV', 'UPC', 'Compromís'].includes(pid) && isPartyEligible(true, 'SdP', provId)) id = 'SdP';
+      } else if (VALENCIAN_COMMUNITY.includes(provId) && ['FA', 'Podemos', 'Compromís'].includes(pid)) id = 'C-FV';
       else if (CANARY_ISLANDS.includes(provId) && ['FA', 'Podemos'].includes(pid)) id = 'UPC';
-      else if (NAVARRA.includes(provId) && ['PP', 'UPN'].includes(pid)) id = 'UPN-PP';
-      const known = validIds.has(id) || !['Compromís', 'UPN', 'Otros'].includes(id);
-      if (!known || !isPartyEligible(false, id, provId)) return;
+
+      if (REMOVED_PARTIES.includes(id) || !isPartyEligible(isSenado, id, provId)) return;
       target[id] = (target[id] || 0) + n;
     });
-    if (Object.keys(target).length) out[provId] = target;
+
+    // keep the province within its seats and the per-party cap
+    let used = 0;
+    Object.keys(target).forEach((id) => {
+      const n = Math.min(target[id], c.maxPerParty, c.seats - used);
+      if (n > 0) {
+        target[id] = n;
+        used += n;
+      } else delete target[id];
+    });
+    if (used > 0) out[provId] = target;
   });
   return out;
-};
+}
+
+/** Converts a saved Congreso scenario to the current party list and rules. */
+export const migrateCongresoScenario = (scenario: ScenarioData): ScenarioData => migrateScenario(scenario, false);
+
+/** Converts a saved Senado scenario (PSOE/FA become SdP where it runs, UPN/PP become UPN-PP in Navarra...). */
+export const migrateSenadoScenario = (scenario: ScenarioData): ScenarioData => migrateScenario(scenario, true);
 
 export const PROVINCIAS_CONGRESO: Constituency[] = [
   { id: 'A_Coruña', name: 'A Coruña', seats: 8, maxPerParty: 8 },
@@ -302,7 +360,7 @@ export const BASE_CONGRESO: ScenarioData = {
   Las_Palmas: { PP: 3, PSOE: 3, Vox: 2 }
 };
 
-export const BASE_SENADO: ScenarioData = {
+const RAW_BASE_SENADO: ScenarioData = {
   A_Coruña: { PP: 3, PSOE: 1 },
   Pontevedra: { PP: 3, PSOE: 1 },
   Lugo: { PP: 3, PSOE: 1 },
@@ -363,6 +421,8 @@ export const BASE_SENADO: ScenarioData = {
   Melilla: { PP: 2 },
   Ibiza: { PP: 1 }
 };
+
+export const BASE_SENADO: ScenarioData = migrateSenadoScenario(RAW_BASE_SENADO);
 
 export const ALIASES: Record<string, string> = {
   vizcaya: 'bizkaia',

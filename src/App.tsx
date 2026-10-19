@@ -8,6 +8,7 @@ import {
   BASE_SENADO,
   isPartyEligible,
   migrateCongresoScenario,
+  migrateSenadoScenario,
   ScenarioData,
   Party,
   Constituency
@@ -69,7 +70,7 @@ export default function App() {
     if (SHARED && SHARED.mode === 's') return SHARED.scenario;
     try {
       const raw = localStorage.getItem(LS_SENADO);
-      if (raw) return JSON.parse(raw);
+      if (raw) return migrateSenadoScenario(JSON.parse(raw));
     } catch {}
     return JSON.parse(JSON.stringify(BASE_SENADO));
   });
@@ -103,11 +104,6 @@ export default function App() {
     const custom = isCongreso ? customPartiesCongreso : customPartiesSenado;
     if (custom.length === 0) return base;
 
-    // Place custom parties right before "Otros" category
-    const otrosIdx = base.findIndex((p) => p.id.toLowerCase() === 'otros');
-    if (otrosIdx >= 0) {
-      return [...base.slice(0, otrosIdx), ...custom, base[otrosIdx]];
-    }
     return [...base, ...custom];
   }, [isCongreso, customPartiesCongreso, customPartiesSenado]);
 

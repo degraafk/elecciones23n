@@ -230,7 +230,7 @@ export const SeatsTable: React.FC<SeatsTableProps> = ({
                               backgroundImage:
                                 'repeating-linear-gradient(135deg, #e9e7e0 0 5px, #f6f5f1 5px 10px)'
                             }}
-                            title={`${p.name} no se presenta en ${c.name}. ${ineligibleReason(p.id)}`}
+                            title={`${p.name} no se presenta en ${c.name}. ${ineligibleReason(p.id, isSenado)}`}
                             aria-label={`${p.name} no se presenta en ${c.name}`}
                           >
                             –
