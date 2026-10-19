@@ -13,7 +13,6 @@ interface SummarySidebarProps {
   unitLabel: string;
   baseTotals: Record<string, number>;
   onOpenAddParty?: () => void;
-  onShareX: () => void;
   onCopyLink: () => void;
   onDownloadImage: () => void;
   onCopyImage: () => void;
@@ -38,7 +37,6 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({
   unitLabel,
   baseTotals,
   onOpenAddParty,
-  onShareX,
   onCopyLink,
   onDownloadImage,
   onCopyImage,
@@ -170,13 +168,10 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({
         <div className="grid grid-cols-2 gap-2 mt-2.5 mb-4">
           <button
             type="button"
-            onClick={onShareX}
+            onClick={onDownloadImage}
             className="col-span-2 inline-flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-[#17171a] bg-[#17171a] text-white text-xs font-semibold hover:bg-[#34343a] hover:border-[#34343a] active:scale-95 transition-all cursor-pointer"
           >
-            <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-current" aria-hidden="true">
-              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-            </svg>
-            Compartir en X
+            Descargar tu predicción
           </button>
           <button
             type="button"
@@ -187,17 +182,10 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({
           </button>
           <button
             type="button"
-            onClick={onDownloadImage}
+            onClick={onNativeShare ?? onCopyImage}
             className="py-2.5 px-3 rounded-xl border border-[#e9e7e0] bg-white text-[#17171a] text-xs font-medium hover:bg-[#fafaf8] hover:border-[#a19e93] active:scale-95 transition-all cursor-pointer"
           >
-            Imagen (PNG)
-          </button>
-          <button
-            type="button"
-            onClick={onNativeShare ?? onCopyImage}
-            className="col-span-2 py-2.5 px-3 rounded-xl border border-[#e9e7e0] bg-white text-[#17171a] text-xs font-medium hover:bg-[#fafaf8] hover:border-[#a19e93] active:scale-95 transition-all cursor-pointer"
-          >
-            {onNativeShare ? 'Compartir imagen…' : 'Copiar imagen para pegarla en X'}
+            {onNativeShare ? 'Compartir imagen' : 'Copiar imagen'}
           </button>
         </div>
         <span className="text-xs font-bold uppercase tracking-wider text-[#17171a]">Exportar</span>

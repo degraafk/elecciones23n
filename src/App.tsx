@@ -26,7 +26,7 @@ import {
   downloadFile,
   parseSpreadsheetFile
 } from './utils/parliamentUtils';
-import { encodeShare, decodeShare, buildTweetText, xIntentUrl, SharedState } from './utils/share';
+import { encodeShare, decodeShare, SharedState } from './utils/share';
 import { makeShareImage } from './utils/shareImage';
 
 const CREST_CONGRESO = `${import.meta.env.BASE_URL}crest-congreso.png`;
@@ -241,23 +241,11 @@ export default function App() {
     return `${window.location.origin}/s?d=${encodeURIComponent(hash.slice(1))}${k}`;
   };
 
-  const handleShareX = () => {
-    const text = buildTweetText({
-      chamber: isCongreso ? 'Congreso' : 'Senado',
-      parties: parties.map((p) => ({ name: p.name, count: partyTotals[p.id] || 0 })),
-      coalition: coalition.names.length
-        ? { names: coalition.names, seats: coalition.seats, target: targetMajoritySeats, majorityName }
-        : null
-    });
-    window.open(xIntentUrl(text, buildShareUrl()), '_blank', 'noopener,noreferrer');
-    setStatusMessage('Se ha abierto X con tu resultado. La imagen sale sola al publicar, a partir del enlace.');
-  };
-
   const handleCopyLink = async () => {
     const url = buildShareUrl();
     try {
       await navigator.clipboard.writeText(url);
-      setStatusMessage('Enlace copiado. Quien lo abra verá tu escenario, y en X saldrá con su imagen.');
+      setStatusMessage('Enlace copiado. Quien lo abra verá tu escenario.');
     } catch {
       window.prompt('Copia este enlace:', url);
     }
@@ -265,8 +253,8 @@ export default function App() {
 
   const buildImage = () =>
     makeShareImage({
-      title: isCongreso ? 'Congreso de los Diputados' : 'Senado de España',
-      label: 'Simulador 29-N 2026',
+      title: 'Mi predicción para el 29-N',
+      label: isCongreso ? 'Congreso de los Diputados' : 'Senado de España',
       crestSrc: isCongreso ? CREST_CONGRESO : CREST_SENADO,
       parties,
       partyTotals,
@@ -289,10 +277,10 @@ export default function App() {
       const blob = await buildImage();
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `${fileNamePrefix}_29N.png`;
+      a.download = `mi_prediccion_${fileNamePrefix}_29N.png`;
       a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-      setStatusMessage('Imagen descargada (1200 x 675, el formato que X muestra sin recortar).');
+      setStatusMessage('Tu predicción se ha descargado (PNG, 1200 x 675).');
     } catch (err) {
       setStatusMessage('No se pudo generar la imagen.');
     }
@@ -302,7 +290,7 @@ export default function App() {
     try {
       const item = new ClipboardItem({ 'image/png': buildImage() });
       await navigator.clipboard.write([item]);
-      setStatusMessage('Imagen copiada. Pégala (Ctrl+V o Cmd+V) en tu post de X.');
+      setStatusMessage('Imagen copiada. Ya puedes pegarla donde quieras.');
     } catch {
       await handleDownloadImage();
       setStatusMessage('Tu navegador no deja copiar imágenes, así que la he descargado.');
@@ -324,8 +312,8 @@ export default function App() {
   const handleNativeShare = async () => {
     try {
       const blob = await buildImage();
-      const file = new File([blob], `${fileNamePrefix}_29N.png`, { type: 'image/png' });
-      await navigator.share({ files: [file], text: 'Mi simulación para el 29-N', url: buildShareUrl() });
+      const file = new File([blob], `mi_prediccion_${fileNamePrefix}_29N.png`, { type: 'image/png' });
+      await navigator.share({ files: [file], text: 'Mi predicción para el 29-N', url: buildShareUrl() });
     } catch (err) {
       if ((err as Error).name !== 'AbortError') setStatusMessage('No se pudo compartir la imagen.');
     }
@@ -649,9 +637,8 @@ export default function App() {
             parties={parties}
             partyTotals={partyTotals}
             totalSeats={totalChamberSeats}
-            targetSeats={targetMajoritySeats}
-            majorityName={majorityName}
             selectedParties={selectedParties}
+            onToggleParty={handleToggleParty}
           />
           <CoalitionMaker
             parties={parties}
@@ -677,7 +664,6 @@ export default function App() {
           majorityName={majorityName}
           unitLabel={unitLabel}
           baseTotals={baseTotals}
-          onShareX={handleShareX}
           onCopyLink={handleCopyLink}
           onDownloadImage={handleDownloadImage}
           onCopyImage={handleCopyImage}

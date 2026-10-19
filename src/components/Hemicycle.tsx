@@ -6,9 +6,8 @@ interface HemicycleProps {
   parties: Party[];
   partyTotals: Record<string, number>;
   totalSeats: number;
-  targetSeats: number;
-  majorityName: string;
   selectedParties: Set<string>;
+  onToggleParty: (partyId: string) => void;
 }
 
 const CSS = `
@@ -23,9 +22,8 @@ export const Hemicycle: React.FC<HemicycleProps> = ({
   parties,
   partyTotals,
   totalSeats,
-  targetSeats,
-  majorityName,
-  selectedParties
+  selectedParties,
+  onToggleParty
 }) => {
   const layout = useMemo(() => computeHemicycle(totalSeats, 300), [totalSeats]);
   const owners = useMemo(
@@ -55,9 +53,6 @@ export const Hemicycle: React.FC<HemicycleProps> = ({
       <style>{CSS}</style>
       <div className="mb-2">
         <h2 className="text-lg font-bold tracking-tight text-[#17171a] m-0">Hemiciclo</h2>
-        <p className="text-xs text-[#77756d] m-0 leading-normal">
-          Un punto por escaño. Pasa el ratón por encima para ver cada partido.
-        </p>
       </div>
 
       <div
@@ -85,32 +80,14 @@ export const Hemicycle: React.FC<HemicycleProps> = ({
                 r={layout.dot}
                 fill={party ? party.color : '#e6e4dc'}
                 opacity={faded ? 0.16 : 1}
-                style={{ animationDelay: `${Math.min(i, 350) * 1.6}ms` }}
+                style={{ animationDelay: `${Math.min(i, 350) * 1.6}ms`, cursor: owner ? 'pointer' : 'default' }}
                 onPointerEnter={(e) => move(e, owner)}
                 onPointerMove={(e) => move(e, owner)}
+                onClick={() => owner && onToggleParty(owner)}
               />
             );
           })}
         </svg>
-
-        {/* Centre counter: scales with the chart so it always fits inside the arc */}
-        <div
-          className="absolute left-0 right-0 flex flex-col items-center text-center pointer-events-none"
-          style={{ bottom: '3%' }}
-        >
-          <b
-            className="font-bold tracking-tight tabular-nums text-[#17171a] leading-none"
-            style={{ fontSize: 'clamp(30px, 9.5cqw, 68px)' }}
-          >
-            {assigned}
-          </b>
-          <span className="text-[#77756d] leading-tight mt-1" style={{ fontSize: 'clamp(11px, 2.5cqw, 16px)' }}>
-            de {totalSeats} escaños
-          </span>
-          <span className="text-[#77756d] leading-tight" style={{ fontSize: 'clamp(10px, 2.2cqw, 14px)' }}>
-            {majorityName}: {targetSeats}
-          </span>
-        </div>
 
         {hover && (
           <div
