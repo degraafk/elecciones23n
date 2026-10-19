@@ -11,7 +11,13 @@ interface SummarySidebarProps {
   targetSeats: number;
   majorityName: string;
   unitLabel: string;
+  baseTotals: Record<string, number>;
   onOpenAddParty?: () => void;
+  onShareX: () => void;
+  onCopyLink: () => void;
+  onDownloadImage: () => void;
+  onCopyImage: () => void;
+  onNativeShare?: () => void;
   onExportXlsx: () => void;
   onExportCsv: () => void;
   onExportSvg: () => void;
@@ -30,7 +36,13 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({
   targetSeats,
   majorityName,
   unitLabel,
+  baseTotals,
   onOpenAddParty,
+  onShareX,
+  onCopyLink,
+  onDownloadImage,
+  onCopyImage,
+  onNativeShare,
   onExportXlsx,
   onExportCsv,
   onExportSvg,
@@ -40,6 +52,7 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({
 }) => {
   const assignedSeats = totalChamberSeats - unassignedSeats;
   const majorityPercentage = (targetSeats / totalChamberSeats) * 100;
+  const showDeltas = assignedSeats >= totalChamberSeats * 0.5;
 
   return (
     <aside className="bg-white border border-[#e9e7e0] rounded-[20px] p-5 shadow-[0_1px_2px_rgba(20,20,20,0.04),0_12px_32px_-12px_rgba(20,20,20,0.08)] sticky top-4">
@@ -118,7 +131,24 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({
               <span className="truncate text-[#17171a]" title={p.fullName || p.name}>
                 {p.name}
               </span>
-              <b className="ml-auto font-semibold tabular-nums text-[#17171a]">{count}</b>
+              {showDeltas && count !== (baseTotals[p.id] || 0) && (
+                <span
+                  className={`ml-auto text-[11px] font-semibold tabular-nums ${
+                    count > (baseTotals[p.id] || 0) ? 'text-[#2e8b4f]' : 'text-[#c4281c]'
+                  }`}
+                  title="Diferencia con el escenario base"
+                >
+                  {count > (baseTotals[p.id] || 0) ? '+' : '−'}
+                  {Math.abs(count - (baseTotals[p.id] || 0))}
+                </span>
+              )}
+              <b
+                className={`${
+                  showDeltas && count !== (baseTotals[p.id] || 0) ? '' : 'ml-auto '
+                }font-semibold tabular-nums text-[#17171a] min-w-[2ch] text-right`}
+              >
+                {count}
+              </b>
             </div>
           );
         })}
@@ -131,6 +161,46 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({
 
       <div className="text-xs text-[#77756d] mt-2 mb-4 leading-relaxed">
         El fondo de cada provincia toma el color del partido con más escaños (rayas si hay empate).
+        {showDeltas && ' Los números verdes y rojos comparan con el escenario base.'}
+      </div>
+
+      {/* Share */}
+      <div className="pt-3 border-t border-[#e9e7e0]">
+        <span className="text-xs font-bold uppercase tracking-wider text-[#17171a]">Compartir</span>
+        <div className="grid grid-cols-2 gap-2 mt-2.5 mb-4">
+          <button
+            type="button"
+            onClick={onShareX}
+            className="col-span-2 inline-flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-[#17171a] bg-[#17171a] text-white text-xs font-semibold hover:bg-[#34343a] hover:border-[#34343a] active:scale-95 transition-all cursor-pointer"
+          >
+            <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-current" aria-hidden="true">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+            </svg>
+            Compartir en X
+          </button>
+          <button
+            type="button"
+            onClick={onCopyLink}
+            className="py-2.5 px-3 rounded-xl border border-[#e9e7e0] bg-white text-[#17171a] text-xs font-medium hover:bg-[#fafaf8] hover:border-[#a19e93] active:scale-95 transition-all cursor-pointer"
+          >
+            Copiar enlace
+          </button>
+          <button
+            type="button"
+            onClick={onDownloadImage}
+            className="py-2.5 px-3 rounded-xl border border-[#e9e7e0] bg-white text-[#17171a] text-xs font-medium hover:bg-[#fafaf8] hover:border-[#a19e93] active:scale-95 transition-all cursor-pointer"
+          >
+            Imagen (PNG)
+          </button>
+          <button
+            type="button"
+            onClick={onNativeShare ?? onCopyImage}
+            className="col-span-2 py-2.5 px-3 rounded-xl border border-[#e9e7e0] bg-white text-[#17171a] text-xs font-medium hover:bg-[#fafaf8] hover:border-[#a19e93] active:scale-95 transition-all cursor-pointer"
+          >
+            {onNativeShare ? 'Compartir imagen…' : 'Copiar imagen para pegarla en X'}
+          </button>
+        </div>
+        <span className="text-xs font-bold uppercase tracking-wider text-[#17171a]">Exportar</span>
       </div>
 
       {/* Action Buttons (GitHub download button removed) */}

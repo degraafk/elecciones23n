@@ -1,11 +1,21 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import {defineConfig} from 'vite';
+import {defineConfig, type Plugin} from 'vite';
+
+// Fills %SITE_URL% in index.html with the deployed domain (Vercel sets these at build time),
+// so the preview image on X gets an absolute URL. Locally it stays empty.
+const siteUrl = (): Plugin => ({
+  name: 'site-url',
+  transformIndexHtml(html) {
+    const host = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL || '';
+    return html.replace(/%SITE_URL%/g, host ? `https://${host}` : '');
+  }
+});
 
 export default defineConfig(() => {
   return {
-    plugins: [react(), tailwindcss()],
+    plugins: [react(), tailwindcss(), siteUrl()],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

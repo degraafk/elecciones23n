@@ -1,5 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Party } from '../data/parliamentData';
+import { minimalMajorities, completers } from '../utils/coalitions';
 
 interface CoalitionMakerProps {
   parties: Party[];
@@ -7,6 +8,7 @@ interface CoalitionMakerProps {
   selectedParties: Set<string>;
   onToggleParty: (partyId: string) => void;
   onClearParties: () => void;
+  onSetParties: (ids: string[]) => void;
   targetSeats: number;
   totalChamberSeats: number;
   majorityName: string;
@@ -18,6 +20,7 @@ export const CoalitionMaker: React.FC<CoalitionMakerProps> = ({
   selectedParties,
   onToggleParty,
   onClearParties,
+  onSetParties,
   targetSeats,
   totalChamberSeats,
   majorityName
@@ -66,6 +69,17 @@ export const CoalitionMaker: React.FC<CoalitionMakerProps> = ({
 
   const isWin = coalitionSeats >= targetSeats;
 
+  const totalAssigned = parties.reduce((sum, p) => sum + (partyTotals[p.id] || 0), 0);
+  const majorities = useMemo(
+    () => minimalMajorities(parties, partyTotals, targetSeats, 6),
+    [parties, partyTotals, targetSeats]
+  );
+  const finishers = useMemo(
+    () => completers(parties, partyTotals, selectedParties, targetSeats),
+    [parties, partyTotals, selectedParties, targetSeats]
+  );
+  const partyById = (id: string) => parties.find((p) => p.id === id);
+
   // Confetti burst on reaching majority
   useEffect(() => {
     if (isWin && !prevWinRef.current) {
@@ -107,7 +121,7 @@ export const CoalitionMaker: React.FC<CoalitionMakerProps> = ({
   if (coalitionSeats > 0) {
     if (isWin) {
       const diff = coalitionSeats - targetSeats;
-      statusText = diff === 0 ? `${majorityName} · justo` : `${majorityName} · +${diff}`;
+      statusText = diff === 0 ? `${majorityName}, justo` : `${majorityName}, +${diff}`;
     } else {
       statusText = `Faltan ${targetSeats - coalitionSeats}`;
     }
@@ -260,6 +274,83 @@ export const CoalitionMaker: React.FC<CoalitionMakerProps> = ({
             })}
         </div>
       )}
+      {/* Possible majorities */}
+      <div className="mt-4 pt-3.5 border-t border-[#e9e7e0]">
+        {!isWin && selectedParties.size > 0 && finishers.length > 0 && (
+          <div className="mb-3.5 animate-in-view">
+            <div className="text-xs font-semibold text-[#17171a] mb-2">
+              Te faltan {targetSeats - coalitionSeats}. Con cualquiera de estos llegas:
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {finishers.slice(0, 6).map((f) => {
+                const p = partyById(f.id);
+                if (!p) return null;
+                return (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => onToggleParty(f.id)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-dashed border-[#a19e93] bg-white text-[#17171a] hover:border-[#17171a] hover:bg-[#fafaf8] active:scale-95 transition-all cursor-pointer"
+                  >
+                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: p.color }} />
+                    <span>+ {p.name}</span>
+                    <b className="tabular-nums text-[#77756d]">{f.seats}</b>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-baseline justify-between mb-2">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-[#17171a] m-0">Mayorías posibles</h3>
+          <span className="text-[11px] text-[#77756d]">pulsa una para aplicarla</span>
+        </div>
+
+        {majorities.length === 0 ? (
+          <p className="text-xs text-[#77756d] m-0 leading-relaxed">
+            {totalAssigned < targetSeats
+              ? `Asigna más escaños: con ${totalAssigned} todavía no hay combinaciones que lleguen a ${targetSeats}.`
+              : `Con este reparto ninguna combinación llega a ${targetSeats}.`}
+          </p>
+        ) : (
+          <div className="flex flex-col gap-1.5">
+            {majorities.map((m) => {
+              const active = m.ids.length === selectedParties.size && m.ids.every((id) => selectedParties.has(id));
+              return (
+                <button
+                  key={m.ids.join('|')}
+                  type="button"
+                  onClick={() => onSetParties(m.ids)}
+                  aria-pressed={active}
+                  className={`flex items-center gap-3 w-full text-left px-3 py-2 rounded-xl border text-xs transition-all cursor-pointer active:scale-[0.99] ${
+                    active
+                      ? 'border-[#17171a] bg-[#fafaf8]'
+                      : 'border-[#e9e7e0] bg-white hover:border-[#a19e93] hover:bg-[#fafaf8]'
+                  }`}
+                >
+                  <span className="flex -space-x-1 shrink-0">
+                    {m.ids.map((id) => (
+                      <span
+                        key={id}
+                        className="w-3.5 h-3.5 rounded-full border-2 border-white"
+                        style={{ backgroundColor: partyById(id)?.color }}
+                      />
+                    ))}
+                  </span>
+                  <span className="font-semibold text-[#17171a] truncate">
+                    {m.ids.map((id) => partyById(id)?.name ?? id).join(' + ')}
+                  </span>
+                  <b className="ml-auto tabular-nums text-[#17171a]">{m.seats}</b>
+                  <span className="text-[11px] text-[#77756d] tabular-nums w-10 text-right">
+                    +{m.seats - targetSeats}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </section>
   );
 };

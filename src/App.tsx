@@ -16,6 +16,7 @@ import { ParliamentMap } from './components/ParliamentMap';
 import { CoalitionMaker } from './components/CoalitionMaker';
 import { SummarySidebar } from './components/SummarySidebar';
 import { SeatsTable } from './components/SeatsTable';
+import { Hemicycle } from './components/Hemicycle';
 import { ProvinceSeatModal } from './components/ProvinceSeatModal';
 import { AddPartyModal } from './components/AddPartyModal';
 import {
@@ -24,6 +25,8 @@ import {
   downloadFile,
   parseSpreadsheetFile
 } from './utils/parliamentUtils';
+import { encodeShare, decodeShare, buildTweetText, xIntentUrl, SharedState } from './utils/share';
+import { makeShareImage } from './utils/shareImage';
 
 const CREST_CONGRESO = `${import.meta.env.BASE_URL}crest-congreso.png`;
 const CREST_SENADO = `${import.meta.env.BASE_URL}crest-senado.png`;
@@ -34,9 +37,16 @@ const LS_MODE = 'congreso-modo';
 const LS_CUSTOM_C = 'congreso-custom-parties-v1';
 const LS_CUSTOM_S = 'senado-custom-parties-v1';
 
+// Scenario opened from a shared link (#v1/...), parsed once
+const SHARED: SharedState | null =
+  typeof window !== 'undefined' ? decodeShare(window.location.hash) : null;
+
 export default function App() {
+  const [sharedView, setSharedView] = useState<boolean>(!!SHARED);
+
   // Mode selection
   const [mode, setMode] = useState<'c' | 's'>(() => {
+    if (SHARED) return SHARED.mode;
     try {
       const saved = localStorage.getItem(LS_MODE);
       return saved === 's' ? 's' : 'c';
@@ -47,6 +57,7 @@ export default function App() {
 
   // Congreso and Senado scenarios
   const [congresoScenario, setCongresoScenario] = useState<ScenarioData>(() => {
+    if (SHARED && SHARED.mode === 'c') return SHARED.scenario;
     try {
       const raw = localStorage.getItem(LS_CONGRESO);
       if (raw) return migrateCongresoScenario(JSON.parse(raw));
@@ -55,6 +66,7 @@ export default function App() {
   });
 
   const [senadoScenario, setSenadoScenario] = useState<ScenarioData>(() => {
+    if (SHARED && SHARED.mode === 's') return SHARED.scenario;
     try {
       const raw = localStorage.getItem(LS_SENADO);
       if (raw) return JSON.parse(raw);
@@ -64,6 +76,7 @@ export default function App() {
 
   // User-created custom parties
   const [customPartiesCongreso, setCustomPartiesCongreso] = useState<Party[]>(() => {
+    if (SHARED && SHARED.mode === 'c') return SHARED.custom;
     try {
       const raw = localStorage.getItem(LS_CUSTOM_C);
       if (raw) return JSON.parse(raw);
@@ -72,6 +85,7 @@ export default function App() {
   });
 
   const [customPartiesSenado, setCustomPartiesSenado] = useState<Party[]>(() => {
+    if (SHARED && SHARED.mode === 's') return SHARED.custom;
     try {
       const raw = localStorage.getItem(LS_CUSTOM_S);
       if (raw) return JSON.parse(raw);
@@ -125,6 +139,7 @@ export default function App() {
 
   // Debounced save to localStorage
   useEffect(() => {
+    if (sharedView) return;
     const timer = setTimeout(() => {
       try {
         localStorage.setItem(LS_MODE, mode);
@@ -137,7 +152,7 @@ export default function App() {
       }
     }, 150);
     return () => clearTimeout(timer);
-  }, [mode, congresoScenario, senadoScenario, customPartiesCongreso, customPartiesSenado]);
+  }, [sharedView, mode, congresoScenario, senadoScenario, customPartiesCongreso, customPartiesSenado]);
 
   // Reset selected coalition chips and active modal when switching mode
   const handleSetMode = (newMode: 'c' | 's') => {
@@ -200,6 +215,133 @@ export default function App() {
     };
   }, [parties, constituencies, activeScenario, totalChamberSeats]);
 
+  // Totals of the base scenario, to show how far the current one moved
+  const baseTotals = useMemo(() => {
+    const base = isCongreso ? BASE_CONGRESO : BASE_SENADO;
+    const totals: Record<string, number> = {};
+    Object.values(base).forEach((row) => {
+      Object.entries(row).forEach(([id, n]) => {
+        totals[id] = (totals[id] || 0) + n;
+      });
+    });
+    return totals;
+  }, [isCongreso]);
+
+  // Selected coalition summary (used for sharing)
+  const coalition = useMemo(() => {
+    const members = parties
+      .filter((p) => selectedParties.has(p.id) && (partyTotals[p.id] || 0) > 0)
+      .sort((a, b) => (partyTotals[b.id] || 0) - (partyTotals[a.id] || 0));
+    const seats = members.reduce((sum, p) => sum + (partyTotals[p.id] || 0), 0);
+    return { names: members.map((p) => p.name), seats };
+  }, [parties, selectedParties, partyTotals]);
+
+  const buildShareUrl = () => {
+    const hash = encodeShare(mode, constituencies, activeScenario, customParties);
+    return `${window.location.origin}${window.location.pathname}${hash}`;
+  };
+
+  const handleShareX = () => {
+    const text = buildTweetText({
+      chamber: isCongreso ? 'Congreso' : 'Senado',
+      parties: parties.map((p) => ({ name: p.name, count: partyTotals[p.id] || 0 })),
+      coalition: coalition.names.length
+        ? { names: coalition.names, seats: coalition.seats, target: targetMajoritySeats, majorityName }
+        : null
+    });
+    window.open(xIntentUrl(text, buildShareUrl()), '_blank', 'noopener,noreferrer');
+    setStatusMessage('Se ha abierto X con tu resultado. Si quieres añadir la imagen, usa "Copiar imagen" y pégala en el post.');
+  };
+
+  const handleCopyLink = async () => {
+    const url = buildShareUrl();
+    try {
+      await navigator.clipboard.writeText(url);
+      setStatusMessage('Enlace copiado. Quien lo abra verá exactamente tu escenario.');
+    } catch {
+      window.prompt('Copia este enlace:', url);
+    }
+  };
+
+  const buildImage = () =>
+    makeShareImage({
+      title: isCongreso ? 'Congreso de los Diputados' : 'Senado de España',
+      label: 'Simulador 29-N 2026',
+      crestSrc: isCongreso ? CREST_CONGRESO : CREST_SENADO,
+      parties,
+      partyTotals,
+      totalSeats: totalChamberSeats,
+      targetSeats: targetMajoritySeats,
+      majorityName,
+      highlight: selectedParties,
+      coalitionText: coalition.names.length
+        ? `${coalition.names.join(' + ')} suman ${coalition.seats}` +
+          (coalition.seats >= targetMajoritySeats
+            ? ` (${majorityName.toLowerCase()})`
+            : ` (faltan ${targetMajoritySeats - coalition.seats})`)
+        : null,
+      coalitionWins: coalition.seats >= targetMajoritySeats,
+      url: buildShareUrl()
+    });
+
+  const handleDownloadImage = async () => {
+    try {
+      const blob = await buildImage();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${fileNamePrefix}_29N.png`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+      setStatusMessage('Imagen descargada (1200 x 675, el formato que X muestra sin recortar).');
+    } catch (err) {
+      setStatusMessage('No se pudo generar la imagen.');
+    }
+  };
+
+  const handleCopyImage = async () => {
+    try {
+      const item = new ClipboardItem({ 'image/png': buildImage() });
+      await navigator.clipboard.write([item]);
+      setStatusMessage('Imagen copiada. Pégala (Ctrl+V o Cmd+V) en tu post de X.');
+    } catch {
+      await handleDownloadImage();
+      setStatusMessage('Tu navegador no deja copiar imágenes, así que la he descargado.');
+    }
+  };
+
+  const canNativeShare = useMemo(() => {
+    try {
+      return (
+        typeof navigator.share === 'function' &&
+        typeof navigator.canShare === 'function' &&
+        navigator.canShare({ files: [new File([''], 'a.png', { type: 'image/png' })] })
+      );
+    } catch {
+      return false;
+    }
+  }, []);
+
+  const handleNativeShare = async () => {
+    try {
+      const blob = await buildImage();
+      const file = new File([blob], `${fileNamePrefix}_29N.png`, { type: 'image/png' });
+      await navigator.share({ files: [file], text: 'Mi simulación para el 29-N', url: buildShareUrl() });
+    } catch (err) {
+      if ((err as Error).name !== 'AbortError') setStatusMessage('No se pudo compartir la imagen.');
+    }
+  };
+
+  const handleKeepShared = () => {
+    setSharedView(false);
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    setStatusMessage('Escenario guardado en tu navegador.');
+  };
+
+  const handleLeaveShared = () => {
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    window.location.reload();
+  };
+
   // Update a single constituency party seat count with boundary enforcement
   const handleUpdateSeat = useCallback(
     (constituencyId: string, partyId: string, rawVal: number) => {
@@ -245,6 +387,10 @@ export default function App() {
 
   const handleClearParties = () => {
     setSelectedParties(new Set());
+  };
+
+  const handleSetParties = (ids: string[]) => {
+    setSelectedParties(new Set(ids));
   };
 
   // Bulk paste from spreadsheet clipboard
@@ -459,6 +605,28 @@ export default function App() {
         </button>
       </div>
 
+      {sharedView && (
+        <div className="flex flex-wrap items-center gap-3 mb-6 px-4 py-3 rounded-2xl border border-[#e9e7e0] bg-[#fafaf8] text-sm text-[#17171a] animate-in-view">
+          <span className="flex-1 min-w-[220px]">
+            Estás viendo un escenario compartido. Tus cambios aquí no se guardan en tu navegador.
+          </span>
+          <button
+            type="button"
+            onClick={handleKeepShared}
+            className="px-3.5 py-1.5 rounded-lg bg-[#17171a] text-white text-xs font-semibold hover:bg-[#34343a] active:scale-95 transition-all cursor-pointer"
+          >
+            Guardar como mío
+          </button>
+          <button
+            type="button"
+            onClick={handleLeaveShared}
+            className="px-3.5 py-1.5 rounded-lg border border-[#e9e7e0] bg-white text-xs font-medium hover:border-[#a19e93] active:scale-95 transition-all cursor-pointer"
+          >
+            Volver a lo mío
+          </button>
+        </div>
+      )}
+
       {/* Main Grid: Map + Coalition Maker (Left) vs Summary Sidebar (Right) */}
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_330px] gap-6 items-start mb-6">
         <div className="flex flex-col gap-6">
@@ -473,12 +641,21 @@ export default function App() {
             selectedParties={selectedParties}
             svgRef={svgRef}
           />
+          <Hemicycle
+            parties={parties}
+            partyTotals={partyTotals}
+            totalSeats={totalChamberSeats}
+            targetSeats={targetMajoritySeats}
+            majorityName={majorityName}
+            selectedParties={selectedParties}
+          />
           <CoalitionMaker
             parties={parties}
             partyTotals={partyTotals}
             selectedParties={selectedParties}
             onToggleParty={handleToggleParty}
             onClearParties={handleClearParties}
+            onSetParties={handleSetParties}
             targetSeats={targetMajoritySeats}
             totalChamberSeats={totalChamberSeats}
             majorityName={majorityName}
@@ -495,6 +672,12 @@ export default function App() {
           targetSeats={targetMajoritySeats}
           majorityName={majorityName}
           unitLabel={unitLabel}
+          baseTotals={baseTotals}
+          onShareX={handleShareX}
+          onCopyLink={handleCopyLink}
+          onDownloadImage={handleDownloadImage}
+          onCopyImage={handleCopyImage}
+          onNativeShare={canNativeShare ? handleNativeShare : undefined}
           onOpenAddParty={() => setIsAddPartyModalOpen(true)}
           onExportXlsx={handleExportXlsx}
           onExportCsv={handleExportCsv}
