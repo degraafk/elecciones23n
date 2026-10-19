@@ -507,6 +507,7 @@ export default function App() {
     if (!svgRef.current) return;
     const cloned = svgRef.current.cloneNode(true) as SVGSVGElement;
     cloned.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    cloned.setAttribute('viewBox', '30 90 870 790'); // always export the whole map, even when zoomed in
 
     // Insert white background rect
     const bgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
@@ -554,9 +555,9 @@ export default function App() {
   };
 
   return (
-    <main className="max-w-[1360px] mx-auto py-8 px-5 pb-16 animate-in-view">
-      {/* Header Title */}
-      <div className="flex items-center gap-4 mb-6">
+    <main className="max-w-[1360px] mx-auto py-10 px-5 sm:px-8 pb-20 animate-in-view">
+      <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-4 mb-10">
+      <div className="flex items-center gap-4">
         <img
           key={mode}
           src={isCongreso ? CREST_CONGRESO : CREST_SENADO}
@@ -573,8 +574,9 @@ export default function App() {
         </div>
       </div>
 
+
       {/* Mode Switcher Tabs */}
-      <div className="inline-flex gap-1 p-1 border border-[#e9e7e0] rounded-2xl bg-[#fafaf8] mb-6" role="tablist">
+      <div className="inline-flex gap-1 p-1 rounded-2xl bg-[#f4f3ee]" role="tablist">
         <button
           type="button"
           role="tab"
@@ -605,6 +607,8 @@ export default function App() {
         </button>
       </div>
 
+      </header>
+
       {sharedView && (
         <div className="flex flex-wrap items-center gap-3 mb-6 px-4 py-3 rounded-2xl border border-[#e9e7e0] bg-[#fafaf8] text-sm text-[#17171a] animate-in-view">
           <span className="flex-1 min-w-[220px]">
@@ -628,8 +632,8 @@ export default function App() {
       )}
 
       {/* Main Grid: Map + Coalition Maker (Left) vs Summary Sidebar (Right) */}
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_330px] gap-6 items-start mb-6">
-        <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_330px] gap-x-12 gap-y-12 items-start mb-12">
+        <div className="flex flex-col gap-12">
           <ParliamentMap
             mode={mode}
             parties={parties}

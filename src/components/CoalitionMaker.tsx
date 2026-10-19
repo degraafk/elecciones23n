@@ -136,10 +136,8 @@ export const CoalitionMaker: React.FC<CoalitionMakerProps> = ({
   return (
     <section
       ref={containerRef}
-      className={`relative overflow-hidden p-5 rounded-[20px] border border-[#e9e7e0] transition-all duration-300 shadow-[0_1px_2px_rgba(20,20,20,0.04),0_12px_32px_-12px_rgba(20,20,20,0.08)] ${
-        isWin
-          ? 'border-[#2e8b4f] bg-gradient-to-b from-[#eef9f1] to-white'
-          : 'bg-white'
+      className={`relative overflow-hidden pt-8 border-t-2 transition-colors duration-300 ${
+        isWin ? 'border-[#2e8b4f]' : 'border-[#efede6]'
       }`}
     >
       <div className="flex justify-between items-start gap-3 mb-3.5">

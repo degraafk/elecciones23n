@@ -55,7 +55,7 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({
   const showDeltas = assignedSeats >= totalChamberSeats * 0.5;
 
   return (
-    <aside className="bg-white border border-[#e9e7e0] rounded-[20px] p-5 shadow-[0_1px_2px_rgba(20,20,20,0.04),0_12px_32px_-12px_rgba(20,20,20,0.08)] sticky top-4">
+    <aside className="lg:pl-8 lg:border-l border-[#efede6] sticky top-4">
       {/* Big Counter */}
       <div className="flex items-baseline gap-2 mb-1">
         <b className="text-4xl font-bold tracking-tight tabular-nums text-[#17171a]">

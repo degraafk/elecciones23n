@@ -68,9 +68,9 @@ export const SeatsTable: React.FC<SeatsTableProps> = ({
   };
 
   return (
-    <div className="bg-white border border-[#e9e7e0] rounded-[20px] shadow-[0_1px_2px_rgba(20,20,20,0.04),0_12px_32px_-12px_rgba(20,20,20,0.08)] overflow-hidden">
+    <div className="border-t-2 border-[#efede6] pt-8">
       {/* Table Toolbar & Search */}
-      <div className="p-4 border-b border-[#e9e7e0] flex items-center justify-between gap-3 bg-[#fafaf8]">
+      <div className="pb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 flex-1 max-w-sm">
           <input
             type="text"
@@ -107,7 +107,7 @@ export const SeatsTable: React.FC<SeatsTableProps> = ({
       </div>
 
       {/* High-Performance Table Container */}
-      <div className="overflow-auto max-h-[72vh] scrollbar-thin">
+      <div className="overflow-auto max-h-[72vh] scrollbar-thin border-y border-[#efede6]">
         <table className="w-full border-collapse border-spacing-0 text-xs">
           <thead>
             {/* Header row 1: Names and party headers */}
