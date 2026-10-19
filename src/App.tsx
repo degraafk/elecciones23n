@@ -27,7 +27,7 @@ import {
   parseSpreadsheetFile
 } from './utils/parliamentUtils';
 import { encodeShare, decodeShare, SharedState } from './utils/share';
-import { makeShareImage } from './utils/shareImage';
+import { makeShareImage, serializeMapSvg } from './utils/shareImage';
 
 const CREST_CONGRESO = `${import.meta.env.BASE_URL}crest-congreso.png`;
 const CREST_SENADO = `${import.meta.env.BASE_URL}crest-senado.png`;
@@ -256,6 +256,7 @@ export default function App() {
       title: 'Mi predicción para el 29-N',
       label: isCongreso ? 'Congreso de los Diputados' : 'Senado de España',
       crestSrc: isCongreso ? CREST_CONGRESO : CREST_SENADO,
+      mapSvg: svgRef.current ? serializeMapSvg(svgRef.current) : null,
       parties,
       partyTotals,
       totalSeats: totalChamberSeats,
@@ -269,7 +270,7 @@ export default function App() {
             : ` (faltan ${targetMajoritySeats - coalition.seats})`)
         : null,
       coalitionWins: coalition.seats >= targetMajoritySeats,
-      url: buildShareUrl()
+      url: window.location.href
     });
 
   const handleDownloadImage = async () => {
@@ -280,7 +281,7 @@ export default function App() {
       a.download = `mi_prediccion_${fileNamePrefix}_29N.png`;
       a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-      setStatusMessage('Tu predicción se ha descargado (PNG, 1200 x 675).');
+      setStatusMessage('Tu predicción se ha descargado (PNG de alta resolución).');
     } catch (err) {
       setStatusMessage('No se pudo generar la imagen.');
     }
