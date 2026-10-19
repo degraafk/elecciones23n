@@ -59,7 +59,7 @@ export function computeHemicycle(total: number, R = 300): HemicycleLayout {
 // Conventional left-to-right seating order used for the chart only
 const ORDER = [
   'C-FV', 'UPC', 'BNG', 'EH Bildu', 'FA', 'Podemos', 'Compromís', 'SdP', 'PSOE',
-  'ERC', 'Junts', 'PNV', 'CC', 'AHI', 'ASG', 'AA', 'UPN-PP', 'UPN', 'PP', 'Vox'
+  'ERC', 'Junts', 'PNV', 'CC', 'AHI', 'ASG', 'AA', 'UPN-PP', 'UPN', 'Sa Unió', 'PP', 'Vox'
 ];
 
 export function hemicycleOrder(parties: Party[]): Party[] {

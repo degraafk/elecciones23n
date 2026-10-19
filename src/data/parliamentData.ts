@@ -14,8 +14,8 @@ export interface Constituency {
 
 export type ScenarioData = Record<string, Record<string, number>>;
 
-const P_PP: Party = { id: 'PP', name: 'PP', color: '#0b5ea8' };
-const P_PSOE: Party = { id: 'PSOE', name: 'PSOE', color: '#e30613' };
+const P_PP: Party = { id: 'PP', name: 'PP', color: '#0b5ea8', fullName: 'Partido Popular' };
+const P_PSOE: Party = { id: 'PSOE', name: 'PSOE', color: '#e30613', fullName: 'Partido Socialista Obrero Español' };
 const P_VOX: Party = { id: 'Vox', name: 'Vox', color: '#5fb02e' };
 const P_FA: Party = { id: 'FA', name: 'FA', color: '#ff5a00', fullName: 'Frente Amplio' };
 const P_PODEMOS: Party = { id: 'Podemos', name: 'Podemos', color: '#8f63f0' };
@@ -33,7 +33,8 @@ const P_ASG: Party = { id: 'ASG', name: 'ASG', color: '#d9528a', fullName: 'Agru
 const P_UPN_PP: Party = { id: 'UPN-PP', name: 'UPN-PP', color: '#2b4c7e', fullName: 'Coalición UPN y PP (Navarra)' };
 const P_CFV: Party = { id: 'C-FV', name: 'C-FV', color: '#d9480f', fullName: 'Compromís-Front Valencià (FA + Compromís + Podemos)' };
 const P_UPC: Party = { id: 'UPC', name: 'UPC', color: '#c2255c', fullName: 'Unidad del Pueblo Canario (FA + Nueva Canarias + Podemos)' };
-const P_SDP: Party = { id: 'SdP', name: 'SdP', color: '#b5121b', fullName: 'Senado de Progreso (PSOE + FA, C-FV o UPC según el territorio)' };
+const P_SAUNIO: Party = { id: 'Sa Unió', name: 'Sa Unió', color: '#0e9aa7', fullName: 'Sa Unió (coalición local con el PP en Formentera)' };
+const P_SDP: Party = { id: 'SdP', name: 'SdP', color: '#b5121b', fullName: 'Senado de Progreso' };
 
 export const PARTIES_CONGRESO: Party[] = [
   P_PP, P_PSOE, P_VOX, P_FA, P_PODEMOS, P_ERC, P_JUNTS, P_BILDU, P_PNV, P_BNG, P_CC, P_AA,
@@ -42,13 +43,13 @@ export const PARTIES_CONGRESO: Party[] = [
 
 export const PARTIES_SENADO: Party[] = [
   P_PP, P_PSOE, P_SDP, P_VOX, P_FA, P_PODEMOS, P_ERC, P_JUNTS, P_BILDU, P_PNV, P_BNG, P_CC, P_AA,
-  P_UPN_PP, P_AHI, P_ASG, P_UPC
+  P_UPN_PP, P_SAUNIO, P_AHI, P_ASG, P_UPC
 ];
 
 /** Suggested coalitions shown in the coalition maker (ids missing in a chamber are ignored). */
 const LEFT = ['PSOE', 'SdP', 'FA', 'Podemos', 'C-FV', 'UPC', 'ERC', 'EH Bildu', 'BNG', 'AA', 'ASG'];
 export const BLOCS: { id: string; name: string; parties: string[] }[] = [
-  { id: 'derecha', name: 'Bloque de derechas', parties: ['PP', 'Vox', 'UPN-PP'] },
+  { id: 'derecha', name: 'Bloque de derechas', parties: ['PP', 'Vox', 'UPN-PP', 'Sa Unió'] },
   { id: 'izquierda', name: 'Bloque de izquierdas', parties: LEFT },
   { id: 'sanchez', name: 'Coalición Sánchez', parties: [...LEFT, 'Junts', 'PNV', 'CC'] }
 ];
@@ -94,6 +95,7 @@ const NOT_IN: Record<string, string[]> = {
 
 const ONLY_IN_SENADO: Record<string, string[]> = {
   'UPN-PP': NAVARRA,
+  'Sa Unió': ['Formentera'],
   ERC: CATALONIA,
   Junts: CATALONIA,
   PNV: BASQUE_COUNTRY,
@@ -112,7 +114,7 @@ const ONLY_IN_SENADO: Record<string, string[]> = {
 const NOT_IN_SENADO: Record<string, string[]> = {
   SdP: SDP_FUERA,
   Podemos: [...VALENCIAN_COMMUNITY, ...SENADO_CANARIAS],
-  PP: NAVARRA
+  PP: [...NAVARRA, 'Formentera']
 };
 
 export const isPartyEligible = (isSenado: boolean, partyId: string, constituencyId: string): boolean => {
@@ -124,7 +126,9 @@ export const isPartyEligible = (isSenado: boolean, partyId: string, constituency
 };
 
 /** Short note shown where a party does not run. */
-export const ineligibleReason = (partyId: string, isSenado = false): string => {
+export const ineligibleReason = (partyId: string, isSenado = false, constituencyId?: string): string => {
+  if (partyId === 'Sa Unió') return 'Solo se presenta en Formentera';
+  if (isSenado && partyId === 'PP' && constituencyId === 'Formentera') return 'En Formentera concurre como Sa Unió';
   if (isSenado && partyId === 'SdP') return 'Aquí la izquierda va por separado';
   if (isSenado && ['PSOE', 'FA', 'UPC'].includes(partyId)) return 'Aquí concurre dentro de Senado de Progreso (SdP)';
   if (partyId === 'AHI') return 'Solo se presenta en El Hierro';
@@ -158,6 +162,7 @@ function migrateScenario(scenario: ScenarioData, isSenado: boolean): ScenarioDat
       if (!n) return;
       let id = pid;
       if (NAVARRA.includes(provId) && ['PP', 'UPN'].includes(pid)) id = 'UPN-PP';
+      else if (isSenado && provId === 'Formentera' && pid === 'PP') id = 'Sa Unió';
       else if (isSenado) {
         if (['PSOE', 'FA', 'C-FV', 'UPC', 'Compromís'].includes(pid) && isPartyEligible(true, 'SdP', provId)) id = 'SdP';
       } else if (VALENCIAN_COMMUNITY.includes(provId) && ['FA', 'Podemos', 'Compromís'].includes(pid)) id = 'C-FV';
