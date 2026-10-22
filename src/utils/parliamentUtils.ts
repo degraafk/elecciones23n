@@ -24,12 +24,24 @@ export function tintColor(hex: string, t: number): string {
   );
 }
 
+/** Parties tied for the most seats in a province (empty when there is a single leader or no seats). */
+export function leadingTie(provSeats: Record<string, number>, parties: Party[]): string[] {
+  let max = 0;
+  parties.forEach((p) => {
+    max = Math.max(max, provSeats[p.id] || 0);
+  });
+  if (max <= 0) return [];
+  const leaders = parties.filter((p) => (provSeats[p.id] || 0) === max).map((p) => p.id);
+  return leaders.length > 1 ? leaders : [];
+}
+
 export function getProvinceFill(
   provinceId: string,
   modeKey: 'c' | 's',
   scenario: ScenarioData,
   parties: Party[],
-  svgDefs: Set<string>
+  svgDefs: Set<string>,
+  tieOrder?: string[]
 ): { fill: string; patternId?: string; patternDef?: { id: string; colors: string[] } } {
   const provSeats = scenario[provinceId] || {};
   const partyEntries: { partyIndex: number; seats: number }[] = [];
@@ -54,7 +66,17 @@ export function getProvinceFill(
     return { fill: tintColor(party.color, 0.3) };
   }
 
-  // Hatch pattern for ties
+  // Tie that the user has ordered: only the first party's colour is shown
+  if (tieOrder) {
+    const ids = winners.map((idx) => parties[idx].id);
+    if (ids.every((id) => tieOrder.includes(id))) {
+      const first = [...ids].sort((a, b) => tieOrder.indexOf(a) - tieOrder.indexOf(b))[0];
+      const party = parties.find((p) => p.id === first)!;
+      return { fill: tintColor(party.color, 0.3) };
+    }
+  }
+
+  // Hatch pattern for unresolved ties
   const patternId = `h${modeKey}-${winners.join('-')}`;
   const patternColors = winners.map((idx) => tintColor(parties[idx].color, 0.3));
 

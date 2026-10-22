@@ -25,13 +25,15 @@ export interface SharedState {
   mode: 'c' | 's';
   scenario: ScenarioData;
   custom: Party[];
+  ties: Record<string, string[]>;
 }
 
 export function encodeShare(
   mode: 'c' | 's',
   constituencies: Constituency[],
   scenario: ScenarioData,
-  custom: Party[]
+  custom: Party[],
+  ties: Record<string, string[]> = {}
 ): string {
   const customUsed = custom.slice(0, MAX_CUSTOM);
   const ids = [...KNOWN_IDS, ...customUsed.map((p) => p.id)];
@@ -47,12 +49,19 @@ export function encodeShare(
   const cp = customUsed
     .map((p) => [p.id, p.fullName || '', p.color].map(encodeURIComponent).join('~'))
     .join(',');
-  return `#v1/${mode}/${seats}/${cp}`;
+  const tieStr = constituencies
+    .map((c, i) => {
+      const order = (ties[c.id] || []).filter((id) => ids.includes(id));
+      return order.length > 1 ? `${i}.${order.map((id) => LETTERS[ids.indexOf(id)]).join('')}` : '';
+    })
+    .filter(Boolean)
+    .join('-');
+  return tieStr ? `#v1/${mode}/${seats}/${cp}/${tieStr}` : `#v1/${mode}/${seats}/${cp}`;
 }
 
 export function decodeShare(hash: string): SharedState | null {
   try {
-    const m = /^#v1\/([cs])\/([^/]*)\/?(.*)$/.exec(hash);
+    const m = /^#v1\/([cs])\/([^/]*)\/?([^/]*)\/?(.*)$/.exec(hash);
     if (!m) return null;
     const mode = m[1] as 'c' | 's';
     const constituencies = mode === 'c' ? PROVINCIAS_CONGRESO : PROVINCIAS_SENADO;
@@ -91,7 +100,16 @@ export function decodeShare(hash: string): SharedState | null {
       });
       if (used > 0) scenario[c.id] = row;
     });
-    return { mode, scenario, custom };
+    const ties: Record<string, string[]> = {};
+    (m[4] || '').split('-').forEach((entry) => {
+      const tm = /^(\d+)\.([a-z]+)$/.exec(entry);
+      if (!tm) return;
+      const c = constituencies[parseInt(tm[1], 10)];
+      if (!c) return;
+      const order = tm[2].split('').map((ch) => ids[LETTERS.indexOf(ch)]).filter((id) => id && valid.has(id));
+      if (order.length > 1) ties[c.id] = order;
+    });
+    return { mode, scenario, custom, ties };
   } catch {
     return null;
   }

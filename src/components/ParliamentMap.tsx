@@ -12,6 +12,7 @@ interface ParliamentMapProps {
   parties: Party[];
   constituencies: Constituency[];
   scenario: ScenarioData;
+  tieOrders: Record<string, string[]>;
   hoveredConstituencyId: string | null;
   onHoverConstituency: (id: string | null) => void;
   onSelectConstituency: (id: string) => void;
@@ -24,6 +25,7 @@ export const ParliamentMap: React.FC<ParliamentMapProps> = ({
   parties,
   constituencies,
   scenario,
+  tieOrders,
   hoveredConstituencyId,
   onHoverConstituency,
   onSelectConstituency,
@@ -40,7 +42,7 @@ export const ParliamentMap: React.FC<ParliamentMapProps> = ({
     const recordedDefIds = new Set<string>();
 
     constituencies.forEach((c) => {
-      const { fill, patternDef } = getProvinceFill(c.id, mode, scenario, parties, recordedDefIds);
+      const { fill, patternDef } = getProvinceFill(c.id, mode, scenario, parties, recordedDefIds, tieOrders[c.id]);
       fills[c.id] = fill;
       if (patternDef && !recordedDefIds.has(patternDef.id)) {
         recordedDefIds.add(patternDef.id);
@@ -49,7 +51,7 @@ export const ParliamentMap: React.FC<ParliamentMapProps> = ({
     });
 
     return { provinceFills: fills, patternDefs: defs };
-  }, [constituencies, scenario, mode, parties]);
+  }, [constituencies, scenario, mode, parties, tieOrders]);
 
   // Memoize circles data per constituency with party assignments
   const seatsByConstituency = useMemo(() => {

@@ -37,6 +37,8 @@ const LS_SENADO = 'senado-tabla-v1';
 const LS_MODE = 'congreso-modo';
 const LS_CUSTOM_C = 'congreso-custom-parties-v1';
 const LS_CUSTOM_S = 'senado-custom-parties-v1';
+const LS_TIES_C = 'congreso-desempates-v1';
+const LS_TIES_S = 'senado-desempates-v1';
 
 // Scenario opened from a shared link (#v1/...), parsed once
 const SHARED: SharedState | null =
@@ -118,6 +120,25 @@ export default function App() {
   const fileNamePrefix = isCongreso ? 'congreso' : 'senado';
   const sheetName = isCongreso ? 'Congreso' : 'Senado';
 
+  // Tie-break order chosen by the user for provinces where parties tie for the lead
+  const readTies = (key: string, shared: boolean): Record<string, string[]> => {
+    if (shared && SHARED) return SHARED.ties;
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw) return JSON.parse(raw);
+    } catch {}
+    return {};
+  };
+  const [tiesCongreso, setTiesCongreso] = useState<Record<string, string[]>>(() =>
+    readTies(LS_TIES_C, !!SHARED && SHARED.mode === 'c')
+  );
+  const [tiesSenado, setTiesSenado] = useState<Record<string, string[]>>(() =>
+    readTies(LS_TIES_S, !!SHARED && SHARED.mode === 's')
+  );
+
+  const activeTies = isCongreso ? tiesCongreso : tiesSenado;
+  const setActiveTies = isCongreso ? setTiesCongreso : setTiesSenado;
+
   // Interactive UI state
   const [selectedParties, setSelectedParties] = useState<Set<string>>(new Set());
   const [hoveredConstituencyId, setHoveredConstituencyId] = useState<string | null>(null);
@@ -143,12 +164,14 @@ export default function App() {
         localStorage.setItem(LS_SENADO, JSON.stringify(senadoScenario));
         localStorage.setItem(LS_CUSTOM_C, JSON.stringify(customPartiesCongreso));
         localStorage.setItem(LS_CUSTOM_S, JSON.stringify(customPartiesSenado));
+        localStorage.setItem(LS_TIES_C, JSON.stringify(tiesCongreso));
+        localStorage.setItem(LS_TIES_S, JSON.stringify(tiesSenado));
       } catch (e) {
         console.error('Error saving scenario:', e);
       }
     }, 150);
     return () => clearTimeout(timer);
-  }, [sharedView, mode, congresoScenario, senadoScenario, customPartiesCongreso, customPartiesSenado]);
+  }, [sharedView, mode, congresoScenario, senadoScenario, customPartiesCongreso, customPartiesSenado, tiesCongreso, tiesSenado]);
 
   // Reset selected coalition chips and active modal when switching mode
   const handleSetMode = (newMode: 'c' | 's') => {
@@ -235,7 +258,7 @@ export default function App() {
   // Link people can open. In production it goes through /s, which gives X the preview image
   // of this exact scenario and then opens the simulator with it loaded.
   const buildShareUrl = () => {
-    const hash = encodeShare(mode, constituencies, activeScenario, customParties);
+    const hash = encodeShare(mode, constituencies, activeScenario, customParties, activeTies);
     if (import.meta.env.DEV) return `${window.location.origin}${window.location.pathname}${hash}`;
     const k = coalition.ids.length ? `&k=${encodeURIComponent(coalition.ids.join(','))}` : '';
     return `${window.location.origin}/s?d=${encodeURIComponent(hash.slice(1))}${k}`;
@@ -440,16 +463,25 @@ export default function App() {
     [constituencies, parties, setActiveScenario, isCongreso]
   );
 
+  const handleSetTieOrder = useCallback(
+    (constituencyId: string, order: string[]) => {
+      setActiveTies((prev) => ({ ...prev, [constituencyId]: order }));
+    },
+    [setActiveTies]
+  );
+
   // Action handlers
   const handleRestoreBase = () => {
     const base = isCongreso ? BASE_CONGRESO : BASE_SENADO;
     setActiveScenario(JSON.parse(JSON.stringify(base)));
+    setActiveTies({});
     setStatusMessage('Escenario base restaurado.');
   };
 
   const handleClearTable = () => {
     if (window.confirm('¿Vaciar toda la tabla?')) {
       setActiveScenario({});
+      setActiveTies({});
       setStatusMessage('Tabla vaciada.');
     }
   };
@@ -461,12 +493,17 @@ export default function App() {
         delete next[constituencyId];
         return next;
       });
+      setActiveTies((prev) => {
+        const next = { ...prev };
+        delete next[constituencyId];
+        return next;
+      });
       const c = constituencies.find((x) => x.id === constituencyId);
       if (c) {
         setStatusMessage(`Escaños de ${c.name} vaciados.`);
       }
     },
-    [constituencies, setActiveScenario]
+    [constituencies, setActiveScenario, setActiveTies]
   );
 
   const handleExportXlsx = () => {
@@ -628,6 +665,7 @@ export default function App() {
             parties={parties}
             constituencies={constituencies}
             scenario={activeScenario}
+            tieOrders={activeTies}
             hoveredConstituencyId={hoveredConstituencyId}
             onHoverConstituency={setHoveredConstituencyId}
             onSelectConstituency={setSelectedConstituencyId}
@@ -712,6 +750,8 @@ export default function App() {
         onClose={() => setSelectedConstituencyId(null)}
         onUpdateSeat={handleUpdateSeat}
         onClearProvince={handleClearProvince}
+        tieOrder={activeSelectedConstituency ? activeTies[activeSelectedConstituency.id] : undefined}
+        onSetTieOrder={handleSetTieOrder}
       />
 
       {/* Add Custom Party Modal */}

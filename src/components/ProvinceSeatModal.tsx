@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ModalShell } from './ModalShell';
 import { Party, Constituency, ScenarioData, isPartyEligible } from '../data/parliamentData';
+import { leadingTie } from '../utils/parliamentUtils';
 
 interface ProvinceSeatModalProps {
   constituency: Constituency | null;
@@ -10,6 +11,8 @@ interface ProvinceSeatModalProps {
   onClose: () => void;
   onUpdateSeat: (constituencyId: string, partyId: string, value: number) => void;
   onClearProvince: (constituencyId: string) => void;
+  tieOrder?: string[];
+  onSetTieOrder: (constituencyId: string, order: string[]) => void;
 }
 
 export const ProvinceSeatModal: React.FC<ProvinceSeatModalProps> = ({
@@ -19,7 +22,9 @@ export const ProvinceSeatModal: React.FC<ProvinceSeatModalProps> = ({
   isSenado,
   onClose,
   onUpdateSeat,
-  onClearProvince
+  onClearProvince,
+  tieOrder,
+  onSetTieOrder
 }) => {
   const [partySearch, setPartySearch] = useState('');
 
@@ -62,6 +67,23 @@ export const ProvinceSeatModal: React.FC<ProvinceSeatModalProps> = ({
     const parsed = parseInt(valStr, 10);
     onUpdateSeat(constituency.id, partyId, isNaN(parsed) ? 0 : parsed);
   };
+
+  // Tie for the lead: the user ranks the tied parties, and the first one takes the province colour on the map
+  const tiedIds = leadingTie(provData, parties);
+  const tiedResolved = tiedIds.length > 1 && !!tieOrder && tiedIds.every((id) => tieOrder.includes(id));
+  const orderedTied = tiedResolved
+    ? [...tiedIds].sort((a, b) => tieOrder!.indexOf(a) - tieOrder!.indexOf(b))
+    : tiedIds;
+  const commitTie = (ids: string[]) =>
+    onSetTieOrder(constituency.id, [...ids, ...(tieOrder || []).filter((id) => !ids.includes(id))]);
+  const moveTied = (index: number, delta: number) => {
+    const next = [...orderedTied];
+    const j = index + delta;
+    if (j < 0 || j >= next.length) return;
+    [next[index], next[j]] = [next[j], next[index]];
+    commitTie(next);
+  };
+  const tiedWinner = tiedResolved ? parties.find((p) => p.id === orderedTied[0]) : undefined;
 
   return (
     <ModalShell onClose={onClose} labelledBy="modal-title">
@@ -138,6 +160,71 @@ export const ProvinceSeatModal: React.FC<ProvinceSeatModalProps> = ({
             })}
           </div>
         </div>
+
+        {/* Tie for the lead: ordering decides the colour of the province on the map */}
+        {tiedIds.length > 1 && (
+          <div className={`px-4 py-3 border-b border-[#e9e7e0] animate-in-view ${tiedResolved ? 'bg-[#fafaf8]' : 'bg-[#fff4e8]'}`}>
+            <div className="flex items-start justify-between gap-3 mb-2">
+              <div className="min-w-0">
+                <div className="text-xs font-bold text-[#17171a]">Empate en cabeza</div>
+                <p className="text-[11px] text-[#77756d] m-0 leading-snug">
+                  {tiedResolved
+                    ? `${tiedWinner?.name} se lleva el color de ${constituency.name} en el mapa. Cambia el orden si quieres.`
+                    : 'Ordénalos: el primero se lleva el color de la provincia. Mientras no lo hagas, el mapa muestra rayas.'}
+                </p>
+              </div>
+              {!tiedResolved && (
+                <button
+                  type="button"
+                  onClick={() => commitTie(orderedTied)}
+                  className="shrink-0 px-3 py-1.5 rounded-lg bg-[#17171a] text-white text-[11px] font-semibold hover:bg-[#34343a] active:scale-95 transition-all cursor-pointer"
+                >
+                  Usar este orden
+                </button>
+              )}
+            </div>
+            <ol className="m-0 p-0 list-none flex flex-col gap-1">
+              {orderedTied.map((id, i) => {
+                const p = parties.find((x) => x.id === id);
+                if (!p) return null;
+                const first = tiedResolved && i === 0;
+                return (
+                  <li
+                    key={id}
+                    className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg border text-xs transition-colors ${
+                      first ? 'border-[#2e8b4f] bg-white' : 'border-[#e9e7e0] bg-white'
+                    }`}
+                  >
+                    <span className="w-4 text-center font-bold tabular-nums text-[#77756d]">{i + 1}</span>
+                    <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: p.color }} />
+                    <span className="font-semibold text-[#17171a]">{p.name}</span>
+                    <span className="text-[#77756d] tabular-nums">{provData[id]} {provData[id] === 1 ? 'escaño' : 'escaños'}</span>
+                    <span className="ml-auto flex gap-1">
+                      <button
+                        type="button"
+                        onClick={() => moveTied(i, -1)}
+                        disabled={i === 0}
+                        aria-label={`Subir ${p.name}`}
+                        className="w-7 h-7 rounded-md border border-[#e9e7e0] text-[#17171a] hover:border-[#a19e93] active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
+                      >
+                        ▲
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => moveTied(i, 1)}
+                        disabled={i === orderedTied.length - 1}
+                        aria-label={`Bajar ${p.name}`}
+                        className="w-7 h-7 rounded-md border border-[#e9e7e0] text-[#17171a] hover:border-[#a19e93] active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
+                      >
+                        ▼
+                      </button>
+                    </span>
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
+        )}
 
         {/* Quick Party Search Input (if list has > 8 items) */}
         {parties.length > 8 && (
