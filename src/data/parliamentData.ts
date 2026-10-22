@@ -18,6 +18,7 @@ const P_PP: Party = { id: 'PP', name: 'PP', color: '#0b5ea8', fullName: 'Partido
 const P_PSOE: Party = { id: 'PSOE', name: 'PSOE', color: '#e30613', fullName: 'Partido Socialista Obrero Español' };
 const P_VOX: Party = { id: 'Vox', name: 'Vox', color: '#5fb02e' };
 const P_FA: Party = { id: 'FA', name: 'FA', color: '#ff5a00', fullName: 'Frente Amplio' };
+const P_IU: Party = { id: 'IU', name: 'IU', color: '#8f1d22', fullName: 'Izquierda Unida' };
 const P_PODEMOS: Party = { id: 'Podemos', name: 'Podemos', color: '#8f63f0' };
 const P_ERC: Party = { id: 'ERC', name: 'ERC', color: '#f5a623' };
 const P_JUNTS: Party = { id: 'Junts', name: 'Junts', color: '#1ec1b0' };
@@ -37,7 +38,7 @@ const P_SAUNIO: Party = { id: 'Sa Unió', name: 'Sa Unió', color: '#0e9aa7', fu
 const P_SDP: Party = { id: 'SdP', name: 'SdP', color: '#b5121b', fullName: 'Senado de Progreso' };
 
 export const PARTIES_CONGRESO: Party[] = [
-  P_PP, P_PSOE, P_VOX, P_FA, P_PODEMOS, P_ERC, P_JUNTS, P_BILDU, P_PNV, P_BNG, P_CC, P_AA,
+  P_PP, P_PSOE, P_VOX, P_FA, P_IU, P_PODEMOS, P_ERC, P_JUNTS, P_BILDU, P_PNV, P_BNG, P_CC, P_AA,
   P_UPN_PP, P_CFV, P_UPC
 ];
 
@@ -47,7 +48,7 @@ export const PARTIES_SENADO: Party[] = [
 ];
 
 /** Suggested coalitions shown in the coalition maker (ids missing in a chamber are ignored). */
-const LEFT = ['PSOE', 'SdP', 'FA', 'Podemos', 'C-FV', 'UPC', 'ERC', 'EH Bildu', 'BNG', 'AA', 'ASG'];
+const LEFT = ['PSOE', 'SdP', 'FA', 'IU', 'Podemos', 'C-FV', 'UPC', 'ERC', 'EH Bildu', 'BNG', 'AA', 'ASG'];
 export const BLOCS: { id: string; name: string; parties: string[] }[] = [
   { id: 'derecha', name: 'Bloque de derechas', parties: ['PP', 'Vox', 'UPN-PP', 'Sa Unió'] },
   { id: 'izquierda', name: 'Bloque de izquierdas', parties: LEFT },
@@ -77,6 +78,7 @@ const ONLY_IN: Record<string, string[]> = {
   'C-FV': VALENCIAN_COMMUNITY,
   UPC: CANARY_ISLANDS,
   'UPN-PP': NAVARRA,
+  IU: ['Teruel'],
   ERC: CATALONIA,
   Junts: CATALONIA,
   PNV: BASQUE_COUNTRY,
@@ -88,7 +90,7 @@ const ONLY_IN: Record<string, string[]> = {
 
 /** Parties that run everywhere except in these provinces (their coalition runs instead). */
 const NOT_IN: Record<string, string[]> = {
-  FA: [...VALENCIAN_COMMUNITY, ...CANARY_ISLANDS],
+  FA: [...VALENCIAN_COMMUNITY, ...CANARY_ISLANDS, 'Teruel'],
   Podemos: [...VALENCIAN_COMMUNITY, ...CANARY_ISLANDS],
   PP: NAVARRA
 };
@@ -128,6 +130,8 @@ export const isPartyEligible = (isSenado: boolean, partyId: string, constituency
 /** Short note shown where a party does not run. */
 export const ineligibleReason = (partyId: string, isSenado = false, constituencyId?: string): string => {
   if (partyId === 'Sa Unió') return 'Solo se presenta en Formentera';
+  if (!isSenado && partyId === 'IU') return 'Solo se presenta en Teruel';
+  if (!isSenado && partyId === 'FA' && constituencyId === 'Teruel') return 'En Teruel concurre Izquierda Unida (IU)';
   if (isSenado && partyId === 'PP' && constituencyId === 'Formentera') return 'En Formentera concurre como Sa Unió';
   if (isSenado && partyId === 'SdP') return 'Aquí la izquierda va por separado';
   if (isSenado && ['PSOE', 'FA', 'UPC'].includes(partyId)) return 'Aquí concurre dentro de Senado de Progreso (SdP)';
@@ -163,6 +167,7 @@ function migrateScenario(scenario: ScenarioData, isSenado: boolean): ScenarioDat
       let id = pid;
       if (NAVARRA.includes(provId) && ['PP', 'UPN'].includes(pid)) id = 'UPN-PP';
       else if (isSenado && provId === 'Formentera' && pid === 'PP') id = 'Sa Unió';
+      else if (!isSenado && provId === 'Teruel' && pid === 'FA') id = 'IU';
       else if (isSenado) {
         if (['PSOE', 'FA', 'C-FV', 'UPC', 'Compromís'].includes(pid) && isPartyEligible(true, 'SdP', provId)) id = 'SdP';
       } else if (VALENCIAN_COMMUNITY.includes(provId) && ['FA', 'Podemos', 'Compromís'].includes(pid)) id = 'C-FV';

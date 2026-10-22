@@ -27,6 +27,7 @@ export const ProvinceSeatModal: React.FC<ProvinceSeatModalProps> = ({
   onSetTieOrder
 }) => {
   const [partySearch, setPartySearch] = useState('');
+  const [shake, setShake] = useState(0);
   const [drag, setDrag] = useState<{ index: number; dy: number; target: number; h: number } | null>(null);
   const dragRef = useRef<{ startY: number; index: number; h: number } | null>(null);
 
@@ -134,7 +135,12 @@ export const ProvinceSeatModal: React.FC<ProvinceSeatModalProps> = ({
 
 
   return (
-    <ModalShell onClose={onClose} labelledBy="modal-title">
+    <ModalShell
+      onClose={onClose}
+      labelledBy="modal-title"
+      canClose={!(tiedIds.length > 1 && !tiedResolved)}
+      onBlockedClose={() => setShake((n) => n + 1)}
+    >
       {(close) => (
       <div
         className="relative w-full max-w-[440px] bg-white rounded-2xl border border-[#e9e7e0] shadow-[0_25px_50px_-12px_rgba(20,20,20,0.25)] overflow-hidden flex flex-col max-h-[85vh] text-left"
@@ -211,14 +217,17 @@ export const ProvinceSeatModal: React.FC<ProvinceSeatModalProps> = ({
 
         {/* Tie for the lead: ordering decides the colour of the province on the map */}
         {tiedIds.length > 1 && (
-          <div className={`px-4 py-3 border-b border-[#e9e7e0] animate-in-view ${tiedResolved ? 'bg-[#fafaf8]' : 'bg-[#fff4e8]'}`}>
+          <div
+            key={`tie-${shake}`}
+            className={`px-4 py-3 border-b border-[#e9e7e0] animate-in-view ${shake > 0 && !tiedResolved ? 'ms-shake ring-2 ring-inset ring-[#c4281c]/50' : ''} ${tiedResolved ? 'bg-[#fafaf8]' : 'bg-[#fff4e8]'}`}
+          >
             <div className="flex items-start justify-between gap-3 mb-2">
               <div className="min-w-0">
                 <div className="text-xs font-bold text-[#17171a]">Empate en cabeza</div>
                 <p className="text-[11px] text-[#77756d] m-0 leading-snug">
                   {tiedResolved
                     ? `${tiedWinner?.name} se lleva el color de ${constituency.name} en el mapa. Arrastra para cambiar el orden.`
-                    : 'Ordénalos arrastrando o con las flechas: el primero se lleva el color de la provincia. Mientras no lo hagas, el mapa muestra rayas.'}
+                    : 'Hay que decidirlo para cerrar: ordénalos arrastrando o con las flechas y el primero se lleva el color de la provincia.'}
                 </p>
               </div>
               {!tiedResolved && (

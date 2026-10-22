@@ -16,7 +16,7 @@ import {
  */
 const KNOWN_IDS = [
   'PP', 'PSOE', 'Vox', 'FA', 'Podemos', 'ERC', 'Junts', 'EH Bildu', 'PNV', 'BNG', 'CC', 'AA',
-  'UPN-PP', 'C-FV', 'UPC', 'UPN', 'Compromís', 'AHI', 'ASG', 'Otros', 'SdP', 'Sa Unió'
+  'UPN-PP', 'C-FV', 'UPC', 'UPN', 'Compromís', 'AHI', 'ASG', 'Otros', 'SdP', 'Sa Unió', 'IU'
 ];
 const LETTERS = 'abcdefghijklmnopqrstuvwxyz';
 const MAX_CUSTOM = LETTERS.length - KNOWN_IDS.length;

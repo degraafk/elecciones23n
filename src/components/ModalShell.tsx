@@ -44,31 +44,54 @@ const CSS = `
   from { opacity: 0; transform: translateX(-8px); }
   to   { opacity: 1; transform: none; }
 }
+@keyframes msShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-7px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(3px); }
+}
+.ms-shake { animation: msShake 380ms cubic-bezier(.36,.07,.19,.97) both; }
 .ms-row { animation: msRowIn 260ms cubic-bezier(.16,1,.3,1) backwards; }
 @media (prefers-reduced-motion: reduce) {
-  .ms-panel, .ms-dim, .ms-row { animation: none !important; }
+  .ms-panel, .ms-dim, .ms-row, .ms-shake { animation: none !important; }
 }
 `;
 
 interface ModalShellProps {
   onClose: () => void;
   labelledBy: string;
+  /** When false, every attempt to close (X, Escape, backdrop...) calls onBlockedClose instead. */
+  canClose?: boolean;
+  onBlockedClose?: () => void;
   children: (close: () => void) => React.ReactNode;
 }
 
-export const ModalShell: React.FC<ModalShellProps> = ({ onClose, labelledBy, children }) => {
+export const ModalShell: React.FC<ModalShellProps> = ({
+  onClose,
+  labelledBy,
+  canClose = true,
+  onBlockedClose,
+  children
+}) => {
   const panelRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState<{ top: number; left: number; ox: number; oy: number } | null>(null);
   const [pageH, setPageH] = useState(() => pageSize().h);
   const [closing, setClosing] = useState(false);
   const closingRef = useRef(false);
 
+  const posRef = useRef<{ top: number; left: number; ox: number; oy: number } | null>(null);
+
   const close = useCallback(() => {
+    if (!canClose) {
+      onBlockedClose?.();
+      return;
+    }
     if (closingRef.current) return;
     closingRef.current = true;
     setClosing(true);
     window.setTimeout(onClose, EXIT_MS);
-  }, [onClose]);
+  }, [onClose, canClose, onBlockedClose]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -86,22 +109,32 @@ export const ModalShell: React.FC<ModalShellProps> = ({ onClose, labelledBy, chi
       setPageH(p.h);
       const w = el.offsetWidth;
       const h = el.offsetHeight;
-      const cx = lastPress ? lastPress.x : p.w / 2;
-      const cy = lastPress ? lastPress.y : window.scrollY + window.innerHeight / 2;
-
       const visTop = window.scrollY;
       const visBottom = Math.min(window.scrollY + window.innerHeight, p.h);
+      const prev = posRef.current;
 
-      const left = Math.min(Math.max(cx - w / 2, 12), Math.max(12, p.w - w - 12));
-      let top = cy - h / 2;
-      top = Math.min(top, visBottom - h - 12);
-      top = Math.max(top, visTop + 12, 12);
-
-      // animation grows out of the click point
-      setPos((prev) => {
-        const next = { top, left, ox: Math.round(cx - left), oy: Math.round(cy - top) };
-        return prev && prev.top === next.top && prev.left === next.left ? prev : next;
-      });
+      let next: { top: number; left: number; ox: number; oy: number };
+      if (!prev) {
+        // first placement: next to where the user clicked
+        const cx = lastPress ? lastPress.x : p.w / 2;
+        const cy = lastPress ? lastPress.y : window.scrollY + window.innerHeight / 2;
+        const left = Math.min(Math.max(cx - w / 2, 12), Math.max(12, p.w - w - 12));
+        let top = cy - h / 2;
+        top = Math.min(top, visBottom - h - 12);
+        top = Math.max(top, visTop + 12, 12);
+        next = { top, left, ox: Math.round(cx - left), oy: Math.round(cy - top) };
+      } else {
+        // afterwards the popup stays put (editing seats or reordering changes its height);
+        // it only moves up if it would otherwise run off the visible area
+        const left = Math.min(prev.left, Math.max(12, p.w - w - 12));
+        let top = Math.min(prev.top, visBottom - h - 12);
+        top = Math.max(top, visTop + 12, 12);
+        next = { ...prev, top, left };
+      }
+      if (!prev || next.top !== prev.top || next.left !== prev.left) {
+        posRef.current = next;
+        setPos(next);
+      }
     };
     place();
     const ro = new ResizeObserver(place);

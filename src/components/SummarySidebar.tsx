@@ -1,4 +1,5 @@
 import React from 'react';
+import { MagneticButton } from './MagneticButton';
 import { Party } from '../data/parliamentData';
 
 interface SummarySidebarProps {
@@ -166,18 +167,18 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({
       <div className="pt-3 border-t border-[#e9e7e0]">
         <span className="text-xs font-bold uppercase tracking-wider text-[#17171a]">Compartir</span>
         <div className="grid grid-cols-2 gap-2 mt-2.5 mb-4">
-          <button
-            type="button"
+          <MagneticButton
             onClick={onDownloadImage}
-            className="col-span-2 group inline-flex items-center justify-center gap-2.5 py-4 px-4 rounded-2xl bg-gradient-to-b from-[#ff7a2e] to-[#ff5a00] text-white text-[15px] font-bold tracking-tight shadow-[0_10px_24px_-8px_rgba(255,90,0,0.65),inset_0_1px_0_rgba(255,255,255,0.35)] hover:-translate-y-0.5 hover:shadow-[0_14px_28px_-8px_rgba(255,90,0,0.75),inset_0_1px_0_rgba(255,255,255,0.35)] active:translate-y-0 active:scale-[0.98] transition-all duration-200 cursor-pointer"
+            className="col-span-2"
+            buttonClassName="w-full py-3 px-4 rounded-xl border border-[#17171a] bg-[#17171a] text-white text-[13px] font-semibold tracking-tight hover:bg-[#2a2a2f] hover:border-[#2a2a2f] active:scale-[0.98] transition-colors cursor-pointer"
           >
-            <svg viewBox="0 0 24 24" className="w-[18px] h-[18px] fill-none stroke-current stroke-[2.4] transition-transform duration-200 group-hover:translate-y-0.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <svg viewBox="0 0 24 24" className="w-4 h-4 fill-none stroke-current stroke-[2.2]" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M12 4v11" />
               <path d="M7 11l5 5 5-5" />
               <path d="M5 20h14" />
             </svg>
             Descargar tu predicción
-          </button>
+          </MagneticButton>
           <button
             type="button"
             onClick={onCopyLink}
