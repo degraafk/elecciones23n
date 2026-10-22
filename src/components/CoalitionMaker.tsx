@@ -326,8 +326,8 @@ export const CoalitionMaker: React.FC<CoalitionMakerProps> = ({
                     : 'border-[#e9e7e0] bg-white hover:border-[#a19e93] hover:bg-[#fafaf8]'
                 }`}
               >
-                <span className="flex -space-x-1 shrink-0">
-                  {b.ids.slice(0, 6).map((id) => (
+                <span className="flex flex-wrap -space-x-1 shrink-0 max-w-[112px] gap-y-0.5">
+                  {b.ids.map((id) => (
                     <span
                       key={id}
                       className="w-3.5 h-3.5 rounded-full border-2 border-white"
@@ -337,7 +337,7 @@ export const CoalitionMaker: React.FC<CoalitionMakerProps> = ({
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block font-semibold text-[13px] text-[#17171a]">{b.name}</span>
-                  <span className="block text-[11px] text-[#77756d] truncate">
+                  <span className="block text-[11px] text-[#77756d] leading-snug">
                     {b.ids.map((id) => partyById(id)?.name ?? id).join(', ')}
                   </span>
                 </span>

@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ModalShell } from './ModalShell';
 import { Party, Constituency, ScenarioData, isPartyEligible } from '../data/parliamentData';
-import { leadingTie } from '../utils/parliamentUtils';
+import { tieGroups } from '../utils/parliamentUtils';
+import { TieBreak } from './TieBreak';
 
 interface ProvinceSeatModalProps {
   constituency: Constituency | null;
@@ -28,8 +29,6 @@ export const ProvinceSeatModal: React.FC<ProvinceSeatModalProps> = ({
 }) => {
   const [partySearch, setPartySearch] = useState('');
   const [shake, setShake] = useState(0);
-  const [drag, setDrag] = useState<{ index: number; dy: number; target: number; h: number } | null>(null);
-  const dragRef = useRef<{ startY: number; index: number; h: number } | null>(null);
 
   const provData = useMemo(() => {
     if (!constituency) return {};
@@ -71,74 +70,21 @@ export const ProvinceSeatModal: React.FC<ProvinceSeatModalProps> = ({
     onUpdateSeat(constituency.id, partyId, isNaN(parsed) ? 0 : parsed);
   };
 
-  // Tie for the lead: the user ranks the tied parties, and the first one takes the province colour on the map
-  const tiedIds = leadingTie(provData, parties);
-  const tiedResolved = tiedIds.length > 1 && !!tieOrder && tiedIds.every((id) => tieOrder.includes(id));
-  const orderedTied = tiedResolved
-    ? [...tiedIds].sort((a, b) => tieOrder!.indexOf(a) - tieOrder!.indexOf(b))
-    : tiedIds;
-  const commitTie = (ids: string[]) =>
+  // Every tie in seats (1st and 2nd, 3rd and 4th, ...) has to be ranked before the popup can be closed
+  const groups = tieGroups(provData, parties).map((g) => {
+    const resolved = !!tieOrder && g.ids.every((id) => tieOrder.includes(id));
+    const ordered = resolved ? [...g.ids].sort((a, b) => tieOrder!.indexOf(a) - tieOrder!.indexOf(b)) : g.ids;
+    return { ...g, resolved, ordered };
+  });
+  const hasUnresolved = groups.some((g) => !g.resolved);
+  const commitGroup = (ids: string[]) =>
     onSetTieOrder(constituency.id, [...ids, ...(tieOrder || []).filter((id) => !ids.includes(id))]);
-  const moveTied = (index: number, delta: number) => {
-    const next = [...orderedTied];
-    const j = index + delta;
-    if (j < 0 || j >= next.length) return;
-    [next[index], next[j]] = [next[j], next[index]];
-    commitTie(next);
-  };
-  const tiedWinner = tiedResolved ? parties.find((p) => p.id === orderedTied[0]) : undefined;
-
-  // Drag and drop for the tie ranking (touch and mouse); the arrows still work
-  const onGripDown = (e: React.PointerEvent<HTMLButtonElement>, index: number) => {
-    const li = e.currentTarget.closest('li') as HTMLElement | null;
-    if (!li) return;
-    const h = li.getBoundingClientRect().height + 4;
-    e.currentTarget.setPointerCapture(e.pointerId);
-    dragRef.current = { startY: e.clientY, index, h };
-    setDrag({ index, dy: 0, target: index, h });
-  };
-  const onGripMove = (e: React.PointerEvent<HTMLButtonElement>) => {
-    const d = dragRef.current;
-    if (!d) return;
-    const last = orderedTied.length - 1;
-    const dy = Math.max(-d.index * d.h, Math.min((last - d.index) * d.h, e.clientY - d.startY));
-    const target = Math.max(0, Math.min(last, d.index + Math.round(dy / d.h)));
-    setDrag({ index: d.index, dy, target, h: d.h });
-  };
-  const onGripEnd = () => {
-    const d = dragRef.current;
-    dragRef.current = null;
-    if (d && drag && drag.target !== drag.index) {
-      const next = [...orderedTied];
-      const [moved] = next.splice(drag.index, 1);
-      next.splice(drag.target, 0, moved);
-      commitTie(next);
-    }
-    setDrag(null);
-  };
-  const rowStyle = (i: number): React.CSSProperties | undefined => {
-    if (!drag) return undefined;
-    if (i === drag.index) {
-      return {
-        position: 'relative',
-        zIndex: 2,
-        transform: `translateY(${drag.dy}px)`,
-        transition: 'none',
-        boxShadow: '0 10px 24px -8px rgba(23,23,26,.35)'
-      };
-    }
-    let shift = 0;
-    if (drag.index < drag.target && i > drag.index && i <= drag.target) shift = -drag.h;
-    if (drag.index > drag.target && i < drag.index && i >= drag.target) shift = drag.h;
-    return { position: 'relative', transform: `translateY(${shift}px)`, transition: 'transform 150ms ease' };
-  };
-
 
   return (
     <ModalShell
       onClose={onClose}
       labelledBy="modal-title"
-      canClose={!(tiedIds.length > 1 && !tiedResolved)}
+      canClose={!hasUnresolved}
       onBlockedClose={() => setShake((n) => n + 1)}
     >
       {(close) => (
@@ -215,90 +161,24 @@ export const ProvinceSeatModal: React.FC<ProvinceSeatModalProps> = ({
           </div>
         </div>
 
-        {/* Tie for the lead: ordering decides the colour of the province on the map */}
-        {tiedIds.length > 1 && (
-          <div
-            key={`tie-${shake}`}
-            className={`px-4 py-3 border-b border-[#e9e7e0] animate-in-view ${shake > 0 && !tiedResolved ? 'ms-shake ring-2 ring-inset ring-[#c4281c]/50' : ''} ${tiedResolved ? 'bg-[#fafaf8]' : 'bg-[#fff4e8]'}`}
-          >
-            <div className="flex items-start justify-between gap-3 mb-2">
-              <div className="min-w-0">
-                <div className="text-xs font-bold text-[#17171a]">Empate en cabeza</div>
-                <p className="text-[11px] text-[#77756d] m-0 leading-snug">
-                  {tiedResolved
-                    ? `${tiedWinner?.name} se lleva el color de ${constituency.name} en el mapa. Arrastra para cambiar el orden.`
-                    : 'Hay que decidirlo para cerrar: ordénalos arrastrando o con las flechas y el primero se lleva el color de la provincia.'}
-                </p>
-              </div>
-              {!tiedResolved && (
-                <button
-                  type="button"
-                  onClick={() => commitTie(orderedTied)}
-                  className="shrink-0 px-3 py-1.5 rounded-lg bg-[#17171a] text-white text-[11px] font-semibold hover:bg-[#34343a] active:scale-95 transition-all cursor-pointer"
-                >
-                  Usar este orden
-                </button>
-              )}
-            </div>
-            <ol className="m-0 p-0 list-none flex flex-col gap-1">
-              {orderedTied.map((id, i) => {
-                const p = parties.find((x) => x.id === id);
-                if (!p) return null;
-                const first = tiedResolved && i === 0;
-                return (
-                  <li
-                    key={id}
-                    style={rowStyle(i)}
-                    className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg border text-xs transition-colors bg-white ${
-                      first ? 'border-[#2e8b4f]' : 'border-[#e9e7e0]'
-                    }`}
-                  >
-                    <button
-                      type="button"
-                      aria-label={`Arrastrar ${p.name}`}
-                      title="Arrastra para cambiar el orden"
-                      onPointerDown={(e) => onGripDown(e, i)}
-                      onPointerMove={onGripMove}
-                      onPointerUp={onGripEnd}
-                      onPointerCancel={onGripEnd}
-                      className="-ml-1 w-5 h-7 flex items-center justify-center text-[#a19e93] hover:text-[#17171a] cursor-grab active:cursor-grabbing touch-none select-none"
-                    >
-                      <svg viewBox="0 0 10 16" className="w-2.5 h-4 fill-current" aria-hidden="true">
-                        <circle cx="2.5" cy="3" r="1.4" /><circle cx="7.5" cy="3" r="1.4" />
-                        <circle cx="2.5" cy="8" r="1.4" /><circle cx="7.5" cy="8" r="1.4" />
-                        <circle cx="2.5" cy="13" r="1.4" /><circle cx="7.5" cy="13" r="1.4" />
-                      </svg>
-                    </button>
-                    <span className="w-4 text-center font-bold tabular-nums text-[#77756d]">{i + 1}</span>
-                    <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: p.color }} />
-                    <span className="font-semibold text-[#17171a]">{p.name}</span>
-                    <span className="text-[#77756d] tabular-nums">{provData[id]} {provData[id] === 1 ? 'escaño' : 'escaños'}</span>
-                    <span className="ml-auto flex gap-1">
-                      <button
-                        type="button"
-                        onClick={() => moveTied(i, -1)}
-                        disabled={i === 0}
-                        aria-label={`Subir ${p.name}`}
-                        className="w-7 h-7 rounded-md border border-[#e9e7e0] text-[#17171a] hover:border-[#a19e93] active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
-                      >
-                        ▲
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => moveTied(i, 1)}
-                        disabled={i === orderedTied.length - 1}
-                        aria-label={`Bajar ${p.name}`}
-                        className="w-7 h-7 rounded-md border border-[#e9e7e0] text-[#17171a] hover:border-[#a19e93] active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
-                      >
-                        ▼
-                      </button>
-                    </span>
-                  </li>
-                );
-              })}
-            </ol>
-          </div>
-        )}
+        {/* Ties: each group has to be ranked; the first of the lead group takes the province colour on the map */}
+        {groups.map((g) => (
+          <TieBreak
+            key={g.seats}
+            title={`Empate por el ${g.place}.º puesto`}
+            seats={g.seats}
+            members={g.ordered}
+            parties={parties}
+            resolved={g.resolved}
+            winnerNote={
+              g.place === 1
+                ? `${parties.find((p) => p.id === g.ordered[0])?.name} se lleva el color de ${constituency.name} en el mapa. Arrastra para cambiar el orden.`
+                : undefined
+            }
+            shake={shake}
+            onCommit={commitGroup}
+          />
+        ))}
 
         {/* Quick Party Search Input (if list has > 8 items) */}
         {parties.length > 8 && (

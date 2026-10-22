@@ -35,6 +35,27 @@ export function leadingTie(provSeats: Record<string, number>, parties: Party[]):
   return leaders.length > 1 ? leaders : [];
 }
 
+/** Every group of parties with the same (non-zero) seats, with the place they share (1 = first). */
+export function tieGroups(
+  provSeats: Record<string, number>,
+  parties: Party[]
+): { seats: number; ids: string[]; place: number }[] {
+  const withSeats = parties.filter((p) => (provSeats[p.id] || 0) > 0);
+  const bySeats = new Map<number, string[]>();
+  withSeats.forEach((p) => {
+    const n = provSeats[p.id];
+    bySeats.set(n, [...(bySeats.get(n) || []), p.id]);
+  });
+  return [...bySeats.entries()]
+    .filter(([, ids]) => ids.length > 1)
+    .sort((a, b) => b[0] - a[0])
+    .map(([seats, ids]) => ({
+      seats,
+      ids,
+      place: 1 + withSeats.filter((p) => provSeats[p.id] > seats).length
+    }));
+}
+
 export function getProvinceFill(
   provinceId: string,
   modeKey: 'c' | 's',

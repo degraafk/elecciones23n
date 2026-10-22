@@ -52,7 +52,7 @@ const LEFT = ['PSOE', 'SdP', 'FA', 'IU', 'Podemos', 'C-FV', 'UPC', 'ERC', 'EH Bi
 export const BLOCS: { id: string; name: string; parties: string[] }[] = [
   { id: 'derecha', name: 'Bloque de derechas', parties: ['PP', 'Vox', 'UPN-PP', 'Sa Unió'] },
   { id: 'izquierda', name: 'Bloque de izquierdas', parties: LEFT },
-  { id: 'sanchez', name: 'Coalición Sánchez', parties: [...LEFT, 'Junts', 'PNV', 'CC'] }
+  { id: 'sanchez', name: 'Bloque de investidura', parties: [...LEFT, 'Junts', 'PNV', 'CC'] }
 ];
 
 // ---------------------------------------------------------------------------

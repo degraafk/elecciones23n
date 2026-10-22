@@ -475,7 +475,7 @@ export default function App() {
     const base = isCongreso ? BASE_CONGRESO : BASE_SENADO;
     setActiveScenario(JSON.parse(JSON.stringify(base)));
     setActiveTies({});
-    setStatusMessage('Escenario base restaurado.');
+    setStatusMessage('Escenario 23-J restaurado.');
   };
 
   const handleClearTable = () => {

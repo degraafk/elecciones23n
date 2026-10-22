@@ -135,7 +135,7 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({
                   className={`ml-auto text-[11px] font-semibold tabular-nums ${
                     count > (baseTotals[p.id] || 0) ? 'text-[#2e8b4f]' : 'text-[#c4281c]'
                   }`}
-                  title="Diferencia con el escenario base"
+                  title="Diferencia con el escenario 23-J"
                 >
                   {count > (baseTotals[p.id] || 0) ? '+' : '−'}
                   {Math.abs(count - (baseTotals[p.id] || 0))}
@@ -160,7 +160,7 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({
 
       <div className="text-xs text-[#77756d] mt-2 mb-4 leading-relaxed">
         El fondo de cada provincia toma el color del partido con más escaños (rayas si hay empate).
-        {showDeltas && ' Los números verdes y rojos comparan con el escenario base.'}
+        {showDeltas && ' Los números verdes y rojos comparan con el escenario 23-J.'}
       </div>
 
       {/* Share */}
@@ -229,7 +229,7 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({
           onClick={onRestoreBase}
           className="py-2.5 px-3 rounded-xl border border-[#e9e7e0] bg-white text-[#17171a] text-xs font-medium hover:bg-[#fafaf8] hover:border-[#a19e93] active:scale-95 transition-all cursor-pointer text-center"
         >
-          Escenario base
+          Escenario 23-J
         </button>
         <button
           type="button"
