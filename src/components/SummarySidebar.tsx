@@ -18,7 +18,6 @@ interface SummarySidebarProps {
   onDownloadImage: () => void;
   onCopyImage: () => void;
   onNativeShare?: () => void;
-  onExportXlsx: () => void;
   onExportCsv: () => void;
   onExportSvg: () => void;
   onImportFile: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -42,7 +41,6 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({
   onDownloadImage,
   onCopyImage,
   onNativeShare,
-  onExportXlsx,
   onExportCsv,
   onExportSvg,
   onImportFile,
@@ -201,15 +199,8 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({
       <div className="grid grid-cols-2 gap-2 my-3">
         <button
           type="button"
-          onClick={onExportXlsx}
-          className="col-span-2 py-2.5 px-3 rounded-xl border border-[#17171a] bg-[#17171a] text-white text-xs font-semibold hover:bg-[#34343a] hover:border-[#34343a] active:scale-95 transition-all cursor-pointer text-center"
-        >
-          Descargar Excel (.xlsx)
-        </button>
-        <button
-          type="button"
           onClick={onExportCsv}
-          className="py-2.5 px-3 rounded-xl border border-[#e9e7e0] bg-white text-[#17171a] text-xs font-medium hover:bg-[#fafaf8] hover:border-[#a19e93] active:scale-95 transition-all cursor-pointer text-center"
+          className="col-span-2 py-2.5 px-3 rounded-xl border border-[#17171a] bg-[#17171a] text-white text-xs font-semibold hover:bg-[#34343a] hover:border-[#34343a] active:scale-95 transition-all cursor-pointer text-center"
         >
           Descargar CSV
         </button>
@@ -220,9 +211,9 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({
         >
           Descargar SVG
         </button>
-        <label className="col-span-2 py-2.5 px-3 rounded-xl border border-[#e9e7e0] bg-white text-[#17171a] text-xs font-medium hover:bg-[#fafaf8] hover:border-[#a19e93] active:scale-95 transition-all cursor-pointer text-center block">
-          Importar Excel / CSV
-          <input type="file" accept=".xlsx,.xls,.csv" onChange={onImportFile} className="hidden" />
+        <label className="py-2.5 px-3 rounded-xl border border-[#e9e7e0] bg-white text-[#17171a] text-xs font-medium hover:bg-[#fafaf8] hover:border-[#a19e93] active:scale-95 transition-all cursor-pointer text-center block">
+          Importar CSV
+          <input type="file" accept=".csv,text/csv" onChange={onImportFile} className="hidden" />
         </label>
         <button
           type="button"

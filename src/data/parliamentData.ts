@@ -38,8 +38,8 @@ const P_SAUNIO: Party = { id: 'Sa Unió', name: 'Sa Unió', color: '#0e9aa7', fu
 const P_SDP: Party = { id: 'SdP', name: 'SdP', color: '#b5121b', fullName: 'Senado de Progreso' };
 
 export const PARTIES_CONGRESO: Party[] = [
-  P_PP, P_PSOE, P_VOX, P_FA, P_IU, P_PODEMOS, P_ERC, P_JUNTS, P_BILDU, P_PNV, P_BNG, P_CC, P_AA,
-  P_UPN_PP, P_CFV, P_UPC
+  P_PP, P_PSOE, P_VOX, P_FA, P_PODEMOS, P_ERC, P_JUNTS, P_BILDU, P_PNV, P_BNG, P_CC, P_AA,
+  P_UPN_PP, P_CFV, P_UPC, P_IU
 ];
 
 export const PARTIES_SENADO: Party[] = [

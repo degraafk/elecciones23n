@@ -35,22 +35,20 @@ export const MagneticButton: React.FC<MagneticButtonProps> = ({
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (!fine || reduce) return;
 
-    const bx = gsap.quickTo(btn, 'x', { duration: 0.45, ease: 'power3.out' });
-    const by = gsap.quickTo(btn, 'y', { duration: 0.45, ease: 'power3.out' });
-    const lx = gsap.quickTo(label, 'x', { duration: 0.45, ease: 'power3.out' });
-    const ly = gsap.quickTo(label, 'y', { duration: 0.45, ease: 'power3.out' });
+    // Plain gsap.to with overwrite on every move: it keeps working after any number of enters and leaves
+    const follow = (x: number, y: number) => {
+      gsap.to(btn, { x, y, duration: 0.45, ease: 'power3.out', overwrite: 'auto' });
+      gsap.to(label, { x: x * 0.45, y: y * 0.45, duration: 0.45, ease: 'power3.out', overwrite: 'auto' });
+    };
 
     const onMove = (e: PointerEvent) => {
       const r = btn.getBoundingClientRect();
-      const dx = e.clientX - (r.left + r.width / 2);
-      const dy = e.clientY - (r.top + r.height / 2);
-      // clamp so a tall or wide button never travels far
-      const mx = Math.max(-10, Math.min(10, dx * strength));
-      const my = Math.max(-6, Math.min(6, dy * strength));
-      bx(mx);
-      by(my);
-      lx(mx * 0.45);
-      ly(my * 0.45);
+      // measure from the button's resting centre, not its current (moved) position
+      const cx = r.left + r.width / 2 - ((gsap.getProperty(btn, 'x') as number) || 0);
+      const cy = r.top + r.height / 2 - ((gsap.getProperty(btn, 'y') as number) || 0);
+      const dx = e.clientX - cx;
+      const dy = e.clientY - cy;
+      follow(Math.max(-10, Math.min(10, dx * strength)), Math.max(-6, Math.min(6, dy * strength)));
     };
     const onLeave = () => {
       gsap.to([btn, label], { x: 0, y: 0, duration: 0.9, ease: 'elastic.out(1, 0.38)', overwrite: 'auto' });

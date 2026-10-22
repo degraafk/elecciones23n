@@ -1,4 +1,3 @@
-import * as XLSX from 'xlsx';
 import { Party, Constituency, ScenarioData, ALIASES } from '../data/parliamentData';
 
 export function normalizeStr(t: string | number | null | undefined): string {
@@ -158,48 +157,52 @@ export function exportToCsv(
   downloadFile(`${filename}_escanos.csv`, csvString, 'text/csv;charset=utf-8');
 }
 
-export function exportToXlsx(
-  filename: string,
-  sheetName: string,
-  constituencies: Constituency[],
-  parties: Party[],
-  scenario: ScenarioData,
-  isSenado: boolean
-) {
-  const header = [
-    isSenado ? 'Circunscripción' : 'Provincia',
-    'Escaños',
-    ...(isSenado ? ['Máx. por partido'] : []),
-    ...parties.map((p) => p.name)
-  ];
+/** Minimal CSV reader: quoted fields, "" escapes, CRLF/LF, and , ; or tab as separator. */
+function parseCsv(text: string): string[][] {
+  const clean = text.replace(/^\ufeff/, '');
+  const firstLines = clean.split(/\r?\n/).filter((l) => l.trim() !== '').slice(0, 5);
+  const count = (d: string) => firstLines.reduce((n, l) => n + l.split(d).length - 1, 0);
+  const delim = [',', ';', '\t'].reduce((best, d) => (count(d) > count(best) ? d : best), ',');
 
-  const dataRows: (string | number)[][] = [header];
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let cell = '';
+  let quoted = false;
+  for (let i = 0; i < clean.length; i++) {
+    const ch = clean[i];
+    if (quoted) {
+      if (ch === '"') {
+        if (clean[i + 1] === '"') {
+          cell += '"';
+          i++;
+        } else quoted = false;
+      } else cell += ch;
+    } else if (ch === '"') quoted = true;
+    else if (ch === delim) {
+      row.push(cell);
+      cell = '';
+    } else if (ch === '\n' || ch === '\r') {
+      if (ch === '\r' && clean[i + 1] === '\n') i++;
+      row.push(cell);
+      cell = '';
+      rows.push(row);
+      row = [];
+    } else cell += ch;
+  }
+  if (cell !== '' || row.length) {
+    row.push(cell);
+    rows.push(row);
+  }
+  return rows;
+}
 
-  constituencies.forEach((c) => {
-    dataRows.push([
-      c.name,
-      c.seats,
-      ...(isSenado ? [c.maxPerParty] : []),
-      ...parties.map((p) => scenario[c.id]?.[p.id] || 0)
-    ]);
-  });
-
-  const ws = XLSX.utils.aoa_to_sheet(dataRows);
-  ws['!cols'] = [
-    { wch: 24 },
-    { wch: 8 },
-    ...(isSenado ? [{ wch: 10 }] : []),
-    ...parties.map(() => ({ wch: 9 }))
-  ];
-
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, sheetName);
-  const wbOut = XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
-  downloadFile(
-    `${filename}_escanos.xlsx`,
-    wbOut,
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-  );
+async function readCsvText(file: File): Promise<string> {
+  const buf = await file.arrayBuffer();
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(buf);
+  } catch {
+    return new TextDecoder('windows-1252').decode(buf); // CSVs saved by older Excel versions
+  }
 }
 
 export async function parseSpreadsheetFile(
@@ -207,13 +210,7 @@ export async function parseSpreadsheetFile(
   constituencies: Constituency[],
   parties: Party[]
 ): Promise<{ newScenario: ScenarioData; rowCount: number; warnings: string[] }> {
-  const arrayBuffer = await file.arrayBuffer();
-  const wb = XLSX.read(arrayBuffer, { type: 'array' });
-  const sheet = wb.Sheets[wb.SheetNames[0]];
-  const rows: (string | number)[][] = XLSX.utils.sheet_to_json(sheet, {
-    header: 1,
-    defval: ''
-  });
+  const rows: (string | number)[][] = parseCsv(await readCsvText(file));
 
   // Build name to id lookup
   const provMap: Record<string, string> = {};

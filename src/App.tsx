@@ -22,7 +22,6 @@ import { ProvinceSeatModal } from './components/ProvinceSeatModal';
 import { AddPartyModal } from './components/AddPartyModal';
 import {
   exportToCsv,
-  exportToXlsx,
   downloadFile,
   parseSpreadsheetFile
 } from './utils/parliamentUtils';
@@ -506,18 +505,6 @@ export default function App() {
     [constituencies, setActiveScenario, setActiveTies]
   );
 
-  const handleExportXlsx = () => {
-    exportToXlsx(
-      fileNamePrefix,
-      sheetName,
-      constituencies,
-      parties,
-      activeScenario,
-      !isCongreso
-    );
-    setStatusMessage('Archivo Excel (.xlsx) generado.');
-  };
-
   const handleExportCsv = () => {
     exportToCsv(
       fileNamePrefix,
@@ -708,7 +695,6 @@ export default function App() {
           onCopyImage={handleCopyImage}
           onNativeShare={canNativeShare ? handleNativeShare : undefined}
           onOpenAddParty={() => setIsAddPartyModalOpen(true)}
-          onExportXlsx={handleExportXlsx}
           onExportCsv={handleExportCsv}
           onExportSvg={handleExportSvg}
           onImportFile={handleImportFile}
