@@ -169,8 +169,13 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({
           <button
             type="button"
             onClick={onDownloadImage}
-            className="col-span-2 inline-flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-[#17171a] bg-[#17171a] text-white text-xs font-semibold hover:bg-[#34343a] hover:border-[#34343a] active:scale-95 transition-all cursor-pointer"
+            className="col-span-2 group inline-flex items-center justify-center gap-2.5 py-4 px-4 rounded-2xl bg-gradient-to-b from-[#ff7a2e] to-[#ff5a00] text-white text-[15px] font-bold tracking-tight shadow-[0_10px_24px_-8px_rgba(255,90,0,0.65),inset_0_1px_0_rgba(255,255,255,0.35)] hover:-translate-y-0.5 hover:shadow-[0_14px_28px_-8px_rgba(255,90,0,0.75),inset_0_1px_0_rgba(255,255,255,0.35)] active:translate-y-0 active:scale-[0.98] transition-all duration-200 cursor-pointer"
           >
+            <svg viewBox="0 0 24 24" className="w-[18px] h-[18px] fill-none stroke-current stroke-[2.4] transition-transform duration-200 group-hover:translate-y-0.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M12 4v11" />
+              <path d="M7 11l5 5 5-5" />
+              <path d="M5 20h14" />
+            </svg>
             Descargar tu predicción
           </button>
           <button

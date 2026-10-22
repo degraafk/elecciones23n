@@ -2,8 +2,8 @@ import { Party } from '../data/parliamentData';
 import { computeHemicycle, seatOwners } from './hemicycle';
 
 export const CARD_W = 1600;
-export const CARD_H = 1600; // square
-const SCALE = 1.5; // PNG is rendered at 1.5x (2400 x 2400) so it stays sharp when zoomed or printed
+export const CARD_H = 1320;
+const SCALE = 1.5; // PNG is rendered at 1.5x (2400 x 1980) so it stays sharp when zoomed or printed
 
 export interface ShareCardData {
   title: string;
@@ -44,80 +44,99 @@ function pill(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h:
 export function renderShareCard(ctx: CanvasRenderingContext2D, W: number, H: number, d: ShareCardData) {
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, W, H);
-  ctx.fillStyle = '#17171a';
-  ctx.fillRect(0, 0, W, 10);
   ctx.textBaseline = 'alphabetic';
 
-  // header
-  let tx = 64;
+  // soft rounded frame
+  const fi = 28;
+  const fr = 56;
+  ctx.strokeStyle = '#dedcd5';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(fi + fr, fi);
+  ctx.arcTo(W - fi, fi, W - fi, H - fi, fr);
+  ctx.arcTo(W - fi, H - fi, fi, H - fi, fr);
+  ctx.arcTo(fi, H - fi, fi, fi, fr);
+  ctx.arcTo(fi, fi, W - fi, fi, fr);
+  ctx.closePath();
+  ctx.stroke();
+
+  // header: crest, chamber, title
+  let tx = 100;
   if (d.crest) {
     const img = d.crest as HTMLImageElement;
-    const ch = 104;
-    const cw = img.width && img.height ? (ch * img.width) / img.height : 60;
-    ctx.drawImage(d.crest, 64, 40, cw, ch);
-    tx = 64 + cw + 28;
+    const ch = 112;
+    const cw = img.width && img.height ? (ch * img.width) / img.height : 64;
+    ctx.drawImage(d.crest, 100, 72, cw, ch);
+    tx = 100 + cw + 30;
   }
   ctx.fillStyle = '#77756d';
-  ctx.font = `700 24px ${FONT}`;
-  ctx.fillText(d.label.toUpperCase(), tx, 80);
+  ctx.font = `700 25px ${FONT}`;
+  ctx.fillText(d.label.toUpperCase(), tx, 116);
   ctx.fillStyle = '#17171a';
-  ctx.font = `700 56px ${FONT}`;
-  ctx.fillText(d.title, tx, 140);
+  ctx.font = `700 66px ${FONT}`;
+  ctx.fillText(d.title, tx, 184);
   const titleEnd = tx + ctx.measureText(d.title).width;
 
-  // coalition pill, top right
+  // selected coalition, top right
   if (d.coalitionText) {
-    ctx.font = `700 27px ${FONT}`;
-    const maxW = Math.max(300, W - 64 - titleEnd - 48);
-    const text = fit(ctx, d.coalitionText, maxW - 48);
+    const room = W - 100 - titleEnd - 40;
+    let px = 27;
+    ctx.font = `700 ${px}px ${FONT}`;
+    while (px > 19 && ctx.measureText(d.coalitionText).width > room - 48) {
+      px -= 1;
+      ctx.font = `700 ${px}px ${FONT}`;
+    }
+    const text = fit(ctx, d.coalitionText, Math.max(240, room - 48));
     const w = ctx.measureText(text).width + 48;
-    const x = W - 64 - w;
+    const x = W - 100 - w;
     ctx.fillStyle = d.coalitionWins ? '#2e8b4f' : '#f0eee8';
-    pill(ctx, x, 62, w, 56);
+    pill(ctx, x, 84, w, 56);
     ctx.fill();
     ctx.fillStyle = d.coalitionWins ? '#ffffff' : '#17171a';
-    ctx.fillText(text, x + 24, 100);
+    ctx.fillText(text, x + 24, 84 + 56 / 2 + px * 0.35);
   }
 
   // map, large on the left
-  const mapW = 900;
+  const mapX = 70;
+  const mapY = 240;
+  const mapW = 1040;
   const mapH = (mapW * 790) / 870;
-  if (d.map) ctx.drawImage(d.map, 40, 165, mapW, mapH);
+  if (d.map) ctx.drawImage(d.map, mapX, mapY, mapW, mapH);
 
   const dim = d.highlight.size > 0;
 
-  // every party with seats, regular weight, filling the column next to the map
+  // every party with seats, regular weight, top right
   const rows = d.parties
     .map((p) => ({ p, n: d.partyTotals[p.id] || 0 }))
     .filter((r) => r.n > 0)
     .sort((a, b) => b.n - a.n);
-  const listX = 1010;
-  const listW = 530;
-  const rowH = Math.min(54, 790 / Math.max(rows.length, 1));
-  const fs = Math.min(32, rowH * 0.64);
-  let ly = 215 + rowH * 0.7;
+  const listX = 1170;
+  const listR = 1520;
+  const rowH = Math.min(44, 510 / Math.max(rows.length, 1));
+  const fs = Math.min(29, rowH * 0.66);
+  let ly = 300 + fs;
   rows.forEach(({ p, n }) => {
     ctx.globalAlpha = dim && !d.highlight.has(p.id) ? 0.35 : 1;
     ctx.fillStyle = p.color;
     ctx.beginPath();
-    ctx.arc(listX + fs * 0.5, ly - fs * 0.34, fs * 0.5, 0, Math.PI * 2);
+    ctx.arc(listX + fs * 0.45, ly - fs * 0.34, fs * 0.45, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = '#17171a';
     ctx.font = `400 ${fs}px ${FONT}`;
-    ctx.fillText(fit(ctx, p.name, listW - 140), listX + fs * 1.4, ly);
+    ctx.fillText(fit(ctx, p.name, listR - listX - 110), listX + fs * 1.35, ly);
     ctx.textAlign = 'right';
-    ctx.fillText(String(n), listX + listW, ly);
+    ctx.fillText(String(n), listR, ly);
     ctx.textAlign = 'left';
     ly += rowH;
   });
   ctx.globalAlpha = 1;
 
-  // hemicycle, large across the bottom (no text inside)
-  const hw = 1060;
+  // hemicycle, bottom right, level with the bottom of the map (no text inside)
+  const hw = 700;
   const layout = computeHemicycle(d.totalSeats, 300);
   const sc = hw / layout.width;
-  const hx = (W - hw) / 2;
-  const hy = 1010;
+  const hx = 830;
+  const hy = mapY + mapH - layout.height * sc;
   const owners = seatOwners(d.totalSeats, d.parties, d.partyTotals);
   const colorOf = (id: string | null) => d.parties.find((p) => p.id === id)?.color ?? '#e6e4dc';
   layout.seats.forEach((s, i) => {
@@ -133,9 +152,9 @@ export function renderShareCard(ctx: CanvasRenderingContext2D, W: number, H: num
   // footer: just the site name
   if (d.host) {
     ctx.fillStyle = '#a19e93';
-    ctx.font = `500 21px ${FONT}`;
+    ctx.font = `500 20px ${FONT}`;
     ctx.textAlign = 'right';
-    ctx.fillText(d.host, W - 64, H - 22);
+    ctx.fillText(d.host, W - 100, H - 62);
     ctx.textAlign = 'left';
   }
 }
@@ -167,7 +186,7 @@ function loadImage(src: string): Promise<HTMLImageElement | null> {
   });
 }
 
-/** Renders the prediction card as a sharp PNG (3200 x 1920). */
+/** Renders the prediction card as a sharp PNG (2400 x 1980). */
 export async function makeShareImage(
   data: Omit<ShareCardData, 'crest' | 'map' | 'host'> & { crestSrc: string; mapSvg: string | null; url: string }
 ): Promise<Blob> {
