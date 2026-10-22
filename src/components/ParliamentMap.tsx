@@ -61,11 +61,24 @@ export const ParliamentMap: React.FC<ParliamentMapProps> = ({
       const circles = seatsData[c.id] || [];
       const provSeats = scenario[c.id] || {};
 
-      // Build sequence of assigned parties ordered by party index
+      // Colours are laid out row by row (top left, top right, then the next row down),
+      // largest party first. Parties with the same seats follow the tie-break order chosen
+      // in the popup, then the usual party order.
+      const order = tieOrders[c.id];
+      const rank = (id: string) => (order ? order.indexOf(id) : -1);
+      const ranked = parties
+        .map((p, i) => ({ p, i, n: provSeats[p.id] || 0 }))
+        .filter((x) => x.n > 0)
+        .sort((a, b) => {
+          if (b.n !== a.n) return b.n - a.n;
+          const ra = rank(a.p.id);
+          const rb = rank(b.p.id);
+          if (ra >= 0 && rb >= 0 && ra !== rb) return ra - rb;
+          return a.i - b.i;
+        });
       const partySeq: { partyId: string; partyColor: string; partyName: string }[] = [];
-      parties.forEach((p) => {
-        const count = provSeats[p.id] || 0;
-        for (let i = 0; i < count; i++) {
+      ranked.forEach(({ p, n }) => {
+        for (let i = 0; i < n; i++) {
           partySeq.push({ partyId: p.id, partyColor: p.color, partyName: p.name });
         }
       });
@@ -85,7 +98,7 @@ export const ParliamentMap: React.FC<ParliamentMapProps> = ({
     });
 
     return result;
-  }, [constituencies, seatsData, scenario, parties]);
+  }, [constituencies, seatsData, scenario, parties, tieOrders]);
 
   // Memoize paths for the currently hovered constituency to render them on top of all borders
   const hoveredPaths = useMemo(() => {

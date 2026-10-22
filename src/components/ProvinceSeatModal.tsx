@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ModalShell } from './ModalShell';
 import { Party, Constituency, ScenarioData, isPartyEligible } from '../data/parliamentData';
 import { leadingTie } from '../utils/parliamentUtils';
@@ -27,6 +27,8 @@ export const ProvinceSeatModal: React.FC<ProvinceSeatModalProps> = ({
   onSetTieOrder
 }) => {
   const [partySearch, setPartySearch] = useState('');
+  const [drag, setDrag] = useState<{ index: number; dy: number; target: number; h: number } | null>(null);
+  const dragRef = useRef<{ startY: number; index: number; h: number } | null>(null);
 
   const provData = useMemo(() => {
     if (!constituency) return {};
@@ -84,6 +86,52 @@ export const ProvinceSeatModal: React.FC<ProvinceSeatModalProps> = ({
     commitTie(next);
   };
   const tiedWinner = tiedResolved ? parties.find((p) => p.id === orderedTied[0]) : undefined;
+
+  // Drag and drop for the tie ranking (touch and mouse); the arrows still work
+  const onGripDown = (e: React.PointerEvent<HTMLButtonElement>, index: number) => {
+    const li = e.currentTarget.closest('li') as HTMLElement | null;
+    if (!li) return;
+    const h = li.getBoundingClientRect().height + 4;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    dragRef.current = { startY: e.clientY, index, h };
+    setDrag({ index, dy: 0, target: index, h });
+  };
+  const onGripMove = (e: React.PointerEvent<HTMLButtonElement>) => {
+    const d = dragRef.current;
+    if (!d) return;
+    const last = orderedTied.length - 1;
+    const dy = Math.max(-d.index * d.h, Math.min((last - d.index) * d.h, e.clientY - d.startY));
+    const target = Math.max(0, Math.min(last, d.index + Math.round(dy / d.h)));
+    setDrag({ index: d.index, dy, target, h: d.h });
+  };
+  const onGripEnd = () => {
+    const d = dragRef.current;
+    dragRef.current = null;
+    if (d && drag && drag.target !== drag.index) {
+      const next = [...orderedTied];
+      const [moved] = next.splice(drag.index, 1);
+      next.splice(drag.target, 0, moved);
+      commitTie(next);
+    }
+    setDrag(null);
+  };
+  const rowStyle = (i: number): React.CSSProperties | undefined => {
+    if (!drag) return undefined;
+    if (i === drag.index) {
+      return {
+        position: 'relative',
+        zIndex: 2,
+        transform: `translateY(${drag.dy}px)`,
+        transition: 'none',
+        boxShadow: '0 10px 24px -8px rgba(23,23,26,.35)'
+      };
+    }
+    let shift = 0;
+    if (drag.index < drag.target && i > drag.index && i <= drag.target) shift = -drag.h;
+    if (drag.index > drag.target && i < drag.index && i >= drag.target) shift = drag.h;
+    return { position: 'relative', transform: `translateY(${shift}px)`, transition: 'transform 150ms ease' };
+  };
+
 
   return (
     <ModalShell onClose={onClose} labelledBy="modal-title">
@@ -169,8 +217,8 @@ export const ProvinceSeatModal: React.FC<ProvinceSeatModalProps> = ({
                 <div className="text-xs font-bold text-[#17171a]">Empate en cabeza</div>
                 <p className="text-[11px] text-[#77756d] m-0 leading-snug">
                   {tiedResolved
-                    ? `${tiedWinner?.name} se lleva el color de ${constituency.name} en el mapa. Cambia el orden si quieres.`
-                    : 'Ordénalos: el primero se lleva el color de la provincia. Mientras no lo hagas, el mapa muestra rayas.'}
+                    ? `${tiedWinner?.name} se lleva el color de ${constituency.name} en el mapa. Arrastra para cambiar el orden.`
+                    : 'Ordénalos arrastrando o con las flechas: el primero se lleva el color de la provincia. Mientras no lo hagas, el mapa muestra rayas.'}
                 </p>
               </div>
               {!tiedResolved && (
@@ -191,10 +239,27 @@ export const ProvinceSeatModal: React.FC<ProvinceSeatModalProps> = ({
                 return (
                   <li
                     key={id}
-                    className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg border text-xs transition-colors ${
-                      first ? 'border-[#2e8b4f] bg-white' : 'border-[#e9e7e0] bg-white'
+                    style={rowStyle(i)}
+                    className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg border text-xs transition-colors bg-white ${
+                      first ? 'border-[#2e8b4f]' : 'border-[#e9e7e0]'
                     }`}
                   >
+                    <button
+                      type="button"
+                      aria-label={`Arrastrar ${p.name}`}
+                      title="Arrastra para cambiar el orden"
+                      onPointerDown={(e) => onGripDown(e, i)}
+                      onPointerMove={onGripMove}
+                      onPointerUp={onGripEnd}
+                      onPointerCancel={onGripEnd}
+                      className="-ml-1 w-5 h-7 flex items-center justify-center text-[#a19e93] hover:text-[#17171a] cursor-grab active:cursor-grabbing touch-none select-none"
+                    >
+                      <svg viewBox="0 0 10 16" className="w-2.5 h-4 fill-current" aria-hidden="true">
+                        <circle cx="2.5" cy="3" r="1.4" /><circle cx="7.5" cy="3" r="1.4" />
+                        <circle cx="2.5" cy="8" r="1.4" /><circle cx="7.5" cy="8" r="1.4" />
+                        <circle cx="2.5" cy="13" r="1.4" /><circle cx="7.5" cy="13" r="1.4" />
+                      </svg>
+                    </button>
                     <span className="w-4 text-center font-bold tabular-nums text-[#77756d]">{i + 1}</span>
                     <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: p.color }} />
                     <span className="font-semibold text-[#17171a]">{p.name}</span>
