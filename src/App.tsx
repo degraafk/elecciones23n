@@ -6,6 +6,8 @@ import {
   PROVINCIAS_SENADO,
   BASE_CONGRESO,
   BASE_SENADO,
+  BASE_TIES_CONGRESO,
+  BASE_TIES_SENADO,
   isPartyEligible,
   migrateCongresoScenario,
   migrateSenadoScenario,
@@ -121,19 +123,26 @@ export default function App() {
   const sheetName = isCongreso ? 'Congreso' : 'Senado';
 
   // Tie-break order chosen by the user for provinces where parties tie for the lead
-  const readTies = (key: string, shared: boolean): Record<string, string[]> => {
+  const readTies = (
+    key: string,
+    scenarioKey: string,
+    shared: boolean,
+    baseTies: Record<string, string[]>
+  ): Record<string, string[]> => {
     if (shared && SHARED) return SHARED.ties;
     try {
       const raw = localStorage.getItem(key);
       if (raw) return JSON.parse(raw);
+      // first visit: the 23-J scenario comes with its ties already decided by vote share
+      if (!localStorage.getItem(scenarioKey)) return JSON.parse(JSON.stringify(baseTies));
     } catch {}
     return {};
   };
   const [tiesCongreso, setTiesCongreso] = useState<Record<string, string[]>>(() =>
-    readTies(LS_TIES_C, !!SHARED && SHARED.mode === 'c')
+    readTies(LS_TIES_C, LS_CONGRESO, !!SHARED && SHARED.mode === 'c', BASE_TIES_CONGRESO)
   );
   const [tiesSenado, setTiesSenado] = useState<Record<string, string[]>>(() =>
-    readTies(LS_TIES_S, !!SHARED && SHARED.mode === 's')
+    readTies(LS_TIES_S, LS_SENADO, !!SHARED && SHARED.mode === 's', BASE_TIES_SENADO)
   );
 
   const activeTies = isCongreso ? tiesCongreso : tiesSenado;
@@ -474,7 +483,7 @@ export default function App() {
   const handleRestoreBase = () => {
     const base = isCongreso ? BASE_CONGRESO : BASE_SENADO;
     setActiveScenario(JSON.parse(JSON.stringify(base)));
-    setActiveTies({});
+    setActiveTies(JSON.parse(JSON.stringify(isCongreso ? BASE_TIES_CONGRESO : BASE_TIES_SENADO)));
     setStatusMessage('Escenario 23-J restaurado.');
   };
 

@@ -436,6 +436,132 @@ const RAW_BASE_SENADO: ScenarioData = {
 
 export const BASE_SENADO: ScenarioData = migrateSenadoScenario(RAW_BASE_SENADO);
 
+// ---------------------------------------------------------------------------
+// 23-J vote share by province (Ministerio del Interior). Only used to break seat ties in the
+// 23-J scenario: among parties with the same seats, the one with more votes goes first.
+// ---------------------------------------------------------------------------
+const VOTE_SHARE_23J: Record<string, Record<string, number>> = {
+  A_Coruña: { PP: 43.13, PSOE: 28.17, Vox: 5.08, Sumar: 12.19, BNG: 9.98 },
+  'Álava': { PP: 17.87, PSOE: 27.66, Vox: 3.89, Sumar: 12.75, EHB: 19.51, PNV: 16.6 },
+  Albacete: { PP: 39.92, PSOE: 34.51, Vox: 16.61, Sumar: 7.16 },
+  Alicante: { PP: 36.73, PSOE: 32.0, Vox: 16.25, Sumar: 12.88 },
+  Almería: { PP: 40.94, PSOE: 29.04, Vox: 21.28, Sumar: 6.69 },
+  Asturias: { PP: 35.65, PSOE: 34.34, Vox: 12.49, Sumar: 14.85 },
+  'Ávila': { PP: 43.25, PSOE: 27.39, Vox: 15.38, Sumar: 5.13 },
+  Badajoz: { PP: 37.82, PSOE: 39.21, Vox: 13.66, Sumar: 6.84 },
+  Barcelona: { PP: 13.78, PSOE: 35.7, Vox: 7.56, Sumar: 15.22, ERC: 12.32, Junts: 9.68 },
+  Bizkaia: { PP: 11.57, PSOE: 25.82, Vox: 2.64, Sumar: 10.92, EHB: 20.64, PNV: 26.93 },
+  Burgos: { PP: 40.64, PSOE: 34.45, Vox: 12.77, Sumar: 8.64 },
+  Cáceres: { PP: 38.0, PSOE: 38.88, Vox: 13.6, Sumar: 6.93 },
+  Cádiz: { PP: 34.8, PSOE: 33.15, Vox: 15.18, Sumar: 12.89 },
+  Cantabria: { PP: 42.08, PSOE: 33.3, Vox: 14.06, Sumar: 8.49 },
+  Castellón: { PP: 35.17, PSOE: 32.65, Vox: 15.88, Sumar: 14.35 },
+  Ceuta: { PP: 38.77, PSOE: 34.01, Vox: 23.26, Sumar: 2.46 },
+  Ciudad_Real: { PP: 40.54, PSOE: 35.37, Vox: 16.27, Sumar: 6.15 },
+  Córdoba: { PP: 37.89, PSOE: 32.12, Vox: 13.94, Sumar: 13.73 },
+  Cuenca: { PP: 39.76, PSOE: 37.37, Vox: 15.55, Sumar: 5.56 },
+  Gipuzkoa: { PP: 8.69, PSOE: 23.29, Vox: 2.09, Sumar: 10.64, EHB: 31.15, PNV: 22.58 },
+  Girona: { PP: 9.7, PSOE: 28.93, Vox: 7.03, Sumar: 10.94, ERC: 14.72, Junts: 19.58 },
+  Granada: { PP: 36.99, PSOE: 32.98, Vox: 16.12, Sumar: 11.65 },
+  Guadalajara: { PP: 36.33, PSOE: 32.98, Vox: 19.25, Sumar: 9.16 },
+  Huelva: { PP: 36.43, PSOE: 35.95, Vox: 14.63, Sumar: 10.42 },
+  Huesca: { PP: 38.19, PSOE: 33.62, Vox: 12.64, Sumar: 11.49 },
+  Baleares: { PP: 35.63, PSOE: 30.16, Vox: 15.21, Sumar: 16.59 },
+  Jaén: { PP: 37.32, PSOE: 36.29, Vox: 14.75, Sumar: 7.99 },
+  La_Rioja: { PP: 45.64, PSOE: 35.68, Vox: 9.77, Sumar: 6.57 },
+  Las_Palmas: { PP: 25.85, PSOE: 33.19, Vox: 14.61, Sumar: 10.27, CC: 6.34 },
+  León: { PP: 36.92, PSOE: 33.64, Vox: 12.88, Sumar: 6.75 },
+  Lleida: { PP: 12.84, PSOE: 29.49, Vox: 6.81, Sumar: 7.89, ERC: 18.6, Junts: 18.01 },
+  Lugo: { PP: 50.24, PSOE: 30.3, Vox: 4.35, Sumar: 5.18, BNG: 8.66 },
+  Madrid: { PP: 40.55, PSOE: 27.84, Vox: 14.03, Sumar: 15.46 },
+  Málaga: { PP: 38.31, PSOE: 30.34, Vox: 16.46, Sumar: 12.26 },
+  Melilla: { PP: 49.16, PSOE: 25.39, Vox: 15.94, Sumar: 3.02 },
+  Murcia: { PP: 41.18, PSOE: 25.3, Vox: 21.81, Sumar: 9.57 },
+  Navarra: { PP: 16.71, PSOE: 27.37, Vox: 5.7, Sumar: 12.85, EHB: 17.25, UPN: 15.27 },
+  Ourense: { PP: 50.02, PSOE: 30.08, Vox: 4.87, Sumar: 5.46, BNG: 8.22 },
+  Palencia: { PP: 41.98, PSOE: 34.67, Vox: 12.9, Sumar: 6.06 },
+  Pontevedra: { PP: 39.72, PSOE: 31.36, Vox: 4.81, Sumar: 13.19, BNG: 9.39 },
+  Salamanca: { PP: 46.87, PSOE: 30.49, Vox: 14.67, Sumar: 5.53 },
+  Santa_Cruz_de_Tenerife: { PP: 35.35, PSOE: 33.49, Sumar: 10.85, CC: 16.75 },
+  Segovia: { PP: 45.02, PSOE: 30.6, Vox: 14.12, Sumar: 8.05 },
+  Sevilla: { PP: 33.38, PSOE: 36.6, Vox: 13.32, Sumar: 14.04 },
+  Soria: { PP: 37.22, PSOE: 29.48, Vox: 9.81, Sumar: 3.37 },
+  Tarragona: { PP: 13.87, PSOE: 32.91, Vox: 10.34, Sumar: 11.34, ERC: 15.07, Junts: 11.08 },
+  Teruel: { PP: 35.02, PSOE: 29.28, Vox: 13.08, Sumar: 5.44 },
+  Toledo: { PP: 37.84, PSOE: 32.56, Vox: 19.64, Sumar: 8.23 },
+  Valencia: { PP: 33.64, PSOE: 32.1, Vox: 15.21, Sumar: 16.9 },
+  Valladolid: { PP: 40.84, PSOE: 32.75, Vox: 15.16, Sumar: 8.87 },
+  Zamora: { PP: 44.67, PSOE: 32.49, Vox: 13.2, Sumar: 5.65 },
+  Zaragoza: { PP: 36.01, PSOE: 30.82, Vox: 15.3, Sumar: 13.48 },
+};
+
+/** Senado constituencies that are islands take the vote share of the province they belong to. */
+const SENADO_TO_PROVINCE: Record<string, string> = {
+  Gran_Canaria: 'Las_Palmas',
+  Lanzarote: 'Las_Palmas',
+  Fuerteventura: 'Las_Palmas',
+  Tenerife: 'Santa_Cruz_de_Tenerife',
+  La_Palma: 'Santa_Cruz_de_Tenerife',
+  La_Gomera: 'Santa_Cruz_de_Tenerife',
+  El_Hierro: 'Santa_Cruz_de_Tenerife',
+  Mallorca: 'Baleares',
+  Menorca: 'Baleares',
+  Ibiza: 'Baleares',
+  Formentera: 'Baleares'
+};
+
+const shareOf = (partyId: string, constituencyId: string): number => {
+  const v = VOTE_SHARE_23J[SENADO_TO_PROVINCE[constituencyId] || constituencyId];
+  if (!v) return -1;
+  const pick = (k: string) => v[k] ?? 0;
+  let value: number | undefined;
+  switch (partyId) {
+    case 'PP':
+    case 'Sa Unió':
+      value = v.PP;
+      break;
+    case 'UPN-PP':
+      value = v.PP !== undefined || v.UPN !== undefined ? pick('PP') + pick('UPN') : undefined;
+      break;
+    case 'FA':
+    case 'C-FV':
+    case 'UPC':
+    case 'IU':
+      value = v.Sumar;
+      break;
+    case 'SdP':
+      value = v.PSOE !== undefined || v.Sumar !== undefined ? pick('PSOE') + pick('Sumar') : undefined;
+      break;
+    case 'EH Bildu':
+      value = v.EHB;
+      break;
+    default:
+      value = v[partyId];
+  }
+  return value ?? -1;
+};
+
+/** Tie-break order for every group of parties with the same seats, decided by 23-J vote share. */
+const computeBaseTies = (scenario: ScenarioData, parties: Party[]): Record<string, string[]> => {
+  const out: Record<string, string[]> = {};
+  Object.entries(scenario).forEach(([constituencyId, row]) => {
+    const bySeats = new Map<number, string[]>();
+    parties.forEach((p) => {
+      const n = row[p.id] || 0;
+      if (n > 0) bySeats.set(n, [...(bySeats.get(n) || []), p.id]);
+    });
+    const order: string[] = [];
+    bySeats.forEach((ids) => {
+      if (ids.length > 1) order.push(...[...ids].sort((a, b) => shareOf(b, constituencyId) - shareOf(a, constituencyId)));
+    });
+    if (order.length) out[constituencyId] = order;
+  });
+  return out;
+};
+
+export const BASE_TIES_CONGRESO: Record<string, string[]> = computeBaseTies(BASE_CONGRESO, PARTIES_CONGRESO);
+export const BASE_TIES_SENADO: Record<string, string[]> = computeBaseTies(BASE_SENADO, PARTIES_SENADO);
+
 export const ALIASES: Record<string, string> = {
   vizcaya: 'bizkaia',
   biscay: 'bizkaia',
