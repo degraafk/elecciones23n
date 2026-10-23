@@ -27,6 +27,7 @@ import {
 } from './utils/parliamentUtils';
 import { encodeShare, decodeShare, SharedState } from './utils/share';
 import { makeShareImage, serializeMapSvg } from './utils/shareImage';
+import { MAP_VIEW } from './data/mapView';
 
 const CREST_CONGRESO = `${import.meta.env.BASE_URL}crest-congreso.png`;
 const CREST_SENADO = `${import.meta.env.BASE_URL}crest-senado.png`;
@@ -520,14 +521,14 @@ export default function App() {
     if (!svgRef.current) return;
     const cloned = svgRef.current.cloneNode(true) as SVGSVGElement;
     cloned.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-    cloned.setAttribute('viewBox', '30 90 870 790'); // always export the whole map, even when zoomed in
+    cloned.setAttribute('viewBox', `${MAP_VIEW.x} ${MAP_VIEW.y} ${MAP_VIEW.w} ${MAP_VIEW.h}`); // always export the whole map, even when zoomed in
 
     // Insert white background rect
     const bgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    bgRect.setAttribute('x', '30');
-    bgRect.setAttribute('y', '90');
-    bgRect.setAttribute('width', '870');
-    bgRect.setAttribute('height', '790');
+    bgRect.setAttribute('x', String(MAP_VIEW.x));
+    bgRect.setAttribute('y', String(MAP_VIEW.y));
+    bgRect.setAttribute('width', String(MAP_VIEW.w));
+    bgRect.setAttribute('height', String(MAP_VIEW.h));
     bgRect.setAttribute('fill', '#ffffff');
     cloned.insertBefore(bgRect, cloned.firstChild);
 

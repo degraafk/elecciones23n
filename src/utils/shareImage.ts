@@ -1,9 +1,10 @@
 import { Party } from '../data/parliamentData';
 import { computeHemicycle, seatOwners } from './hemicycle';
+import { MAP_VIEW } from '../data/mapView';
 
 export const CARD_W = 1600;
-export const CARD_H = 1320;
-const SCALE = 1.5; // PNG is rendered at 1.5x (2400 x 1980) so it stays sharp when zoomed or printed
+export const CARD_H = 1150;
+const SCALE = 1.5; // PNG is rendered at 1.5x (2400 x 1725) so it stays sharp when zoomed or printed
 
 export interface ShareCardData {
   title: string;
@@ -96,47 +97,21 @@ export function renderShareCard(ctx: CanvasRenderingContext2D, W: number, H: num
     ctx.fillText(text, x + 24, 84 + 56 / 2 + px * 0.35);
   }
 
-  // map, large on the left
-  const mapX = 70;
-  const mapY = 240;
-  const mapW = 1040;
-  const mapH = (mapW * 790) / 870;
+  // map, large on the left (the Canary Islands sit inside it, lower right)
+  const mapX = 60;
+  const mapY = 235;
+  const mapW = 980;
+  const mapH = (mapW * MAP_VIEW.h) / MAP_VIEW.w;
   if (d.map) ctx.drawImage(d.map, mapX, mapY, mapW, mapH);
 
   const dim = d.highlight.size > 0;
 
-  // every party with seats, regular weight, top right
-  const rows = d.parties
-    .map((p) => ({ p, n: d.partyTotals[p.id] || 0 }))
-    .filter((r) => r.n > 0)
-    .sort((a, b) => b.n - a.n);
-  const listX = 1170;
-  const listR = 1520;
-  const rowH = Math.min(44, 510 / Math.max(rows.length, 1));
-  const fs = Math.min(29, rowH * 0.66);
-  let ly = 300 + fs;
-  rows.forEach(({ p, n }) => {
-    ctx.globalAlpha = dim && !d.highlight.has(p.id) ? 0.35 : 1;
-    ctx.fillStyle = p.color;
-    ctx.beginPath();
-    ctx.arc(listX + fs * 0.45, ly - fs * 0.34, fs * 0.45, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#17171a';
-    ctx.font = `400 ${fs}px ${FONT}`;
-    ctx.fillText(fit(ctx, p.name, listR - listX - 110), listX + fs * 1.35, ly);
-    ctx.textAlign = 'right';
-    ctx.fillText(String(n), listR, ly);
-    ctx.textAlign = 'left';
-    ly += rowH;
-  });
-  ctx.globalAlpha = 1;
-
-  // hemicycle, bottom right, level with the bottom of the map (no text inside)
-  const hw = 700;
+  // right column: hemicycle on top (no text inside), then every party with seats in regular weight
+  const colX = 1080;
+  const colW = 450;
   const layout = computeHemicycle(d.totalSeats, 300);
-  const sc = hw / layout.width;
-  const hx = 830;
-  const hy = mapY + mapH - layout.height * sc;
+  const sc = colW / layout.width;
+  const hy = 205;
   const owners = seatOwners(d.totalSeats, d.parties, d.partyTotals);
   const colorOf = (id: string | null) => d.parties.find((p) => p.id === id)?.color ?? '#e6e4dc';
   layout.seats.forEach((s, i) => {
@@ -144,8 +119,33 @@ export function renderShareCard(ctx: CanvasRenderingContext2D, W: number, H: num
     ctx.globalAlpha = dim && !(owner && d.highlight.has(owner)) ? 0.2 : 1;
     ctx.fillStyle = colorOf(owner);
     ctx.beginPath();
-    ctx.arc(hx + s.x * sc, hy + s.y * sc, layout.dot * sc, 0, Math.PI * 2);
+    ctx.arc(colX + s.x * sc, hy + s.y * sc, layout.dot * sc, 0, Math.PI * 2);
     ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+
+  const rows = d.parties
+    .map((p) => ({ p, n: d.partyTotals[p.id] || 0 }))
+    .filter((r) => r.n > 0)
+    .sort((a, b) => b.n - a.n);
+  const listTop = hy + layout.height * sc + 56;
+  const listBottom = mapY + mapH;
+  const rowH = Math.min(46, (listBottom - listTop) / Math.max(rows.length, 1));
+  const fs = Math.min(29, rowH * 0.64);
+  let ly = listTop + fs;
+  rows.forEach(({ p, n }) => {
+    ctx.globalAlpha = dim && !d.highlight.has(p.id) ? 0.35 : 1;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(colX + fs * 0.45, ly - fs * 0.34, fs * 0.45, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#17171a';
+    ctx.font = `400 ${fs}px ${FONT}`;
+    ctx.fillText(fit(ctx, p.name, colW - 110), colX + fs * 1.35, ly);
+    ctx.textAlign = 'right';
+    ctx.fillText(String(n), colX + colW, ly);
+    ctx.textAlign = 'left';
+    ly += rowH;
   });
   ctx.globalAlpha = 1;
 
@@ -154,7 +154,7 @@ export function renderShareCard(ctx: CanvasRenderingContext2D, W: number, H: num
     ctx.fillStyle = '#a19e93';
     ctx.font = `500 20px ${FONT}`;
     ctx.textAlign = 'right';
-    ctx.fillText(d.host, W - 100, H - 62);
+    ctx.fillText(d.host, W - 100, H - 58);
     ctx.textAlign = 'left';
   }
 }
@@ -163,9 +163,9 @@ export function renderShareCard(ctx: CanvasRenderingContext2D, W: number, H: num
 export function serializeMapSvg(svg: SVGSVGElement): string {
   const clone = svg.cloneNode(true) as SVGSVGElement;
   clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-  clone.setAttribute('viewBox', '30 90 870 790');
-  clone.setAttribute('width', '1740');
-  clone.setAttribute('height', '1580');
+  clone.setAttribute('viewBox', `${MAP_VIEW.x} ${MAP_VIEW.y} ${MAP_VIEW.w} ${MAP_VIEW.h}`);
+  clone.setAttribute('width', String(MAP_VIEW.w * 2));
+  clone.setAttribute('height', String(MAP_VIEW.h * 2));
   clone.removeAttribute('class');
   clone.removeAttribute('style');
   clone.setAttribute('font-family', "Inter, 'Segoe UI', system-ui, Helvetica, Arial, sans-serif");
@@ -186,7 +186,7 @@ function loadImage(src: string): Promise<HTMLImageElement | null> {
   });
 }
 
-/** Renders the prediction card as a sharp PNG (2400 x 1980). */
+/** Renders the prediction card as a sharp PNG (2400 x 1725). */
 export async function makeShareImage(
   data: Omit<ShareCardData, 'crest' | 'map' | 'host'> & { crestSrc: string; mapSvg: string | null; url: string }
 ): Promise<Blob> {

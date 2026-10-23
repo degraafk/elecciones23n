@@ -3,8 +3,9 @@ import { Party, Constituency, ScenarioData } from '../data/parliamentData';
 import { CONGRESO_SEATS, SENADO_SEATS, SeatCircle } from '../data/seatCoordinates';
 import { ALL_PROVINCE_PATHS, PATH_INDICES_BY_CONGRESO, PATH_INDICES_BY_SENADO } from '../data/provincePaths';
 import { getProvinceFill } from '../utils/parliamentUtils';
+import { MAP_VIEW, CANARIAS_TRANSFORM, CANARIAS_IDS } from '../data/mapView';
 
-const BASE = { x: 30, y: 90, w: 870, h: 790 };
+const BASE = MAP_VIEW;
 const MAX_ZOOM = 8;
 
 interface ParliamentMapProps {
@@ -343,6 +344,7 @@ export const ParliamentMap: React.FC<ParliamentMapProps> = ({
                 d={item.d}
                 fill={fill}
                 vectorEffect="non-scaling-stroke"
+                transform={CANARIAS_IDS.has(constId) ? CANARIAS_TRANSFORM : undefined}
                 className="transition-colors duration-150 cursor-pointer"
                 onMouseEnter={() => onHoverConstituency(constId)}
                 onMouseLeave={() => onHoverConstituency(null)}
@@ -365,6 +367,7 @@ export const ParliamentMap: React.FC<ParliamentMapProps> = ({
                 vectorEffect="non-scaling-stroke"
                 strokeLinejoin="round"
                 strokeLinecap="round"
+                transform={CANARIAS_IDS.has(isCongreso ? item.p : item.s) ? CANARIAS_TRANSFORM : undefined}
                 className="transition-opacity duration-150"
               />
             ))}
@@ -382,6 +385,7 @@ export const ParliamentMap: React.FC<ParliamentMapProps> = ({
           fillOpacity={0.35}
           stroke="#e2e0d8"
           strokeWidth={1}
+          transform={CANARIAS_TRANSFORM}
           className="pointer-events-none"
         />
 
@@ -418,6 +422,8 @@ export const ParliamentMap: React.FC<ParliamentMapProps> = ({
               <text x={795} y={422}>
                 Illes Balears (8)
               </text>
+            </g>
+            <g fontSize={13} fill="#77756d" fontWeight={500} textAnchor="middle" transform={CANARIAS_TRANSFORM}>
               <text x={200} y={762}>
                 Santa Cruz de Tenerife (7)
               </text>
@@ -437,6 +443,7 @@ export const ParliamentMap: React.FC<ParliamentMapProps> = ({
             return (
               <g
                 key={c.id}
+                transform={CANARIAS_IDS.has(c.id) ? CANARIAS_TRANSFORM : undefined}
                 className="cursor-pointer"
                 onMouseEnter={() => onHoverConstituency(c.id)}
                 onMouseLeave={() => onHoverConstituency(null)}
