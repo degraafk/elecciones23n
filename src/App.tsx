@@ -34,13 +34,13 @@ import { MAP_VIEW } from './data/mapView';
 const CREST_CONGRESO = `${import.meta.env.BASE_URL}crest-congreso.png`;
 const CREST_SENADO = `${import.meta.env.BASE_URL}crest-senado.png`;
 
-const LS_CONGRESO = 'congreso-tabla-v2';
-const LS_SENADO = 'senado-tabla-v1';
+const LS_CONGRESO = 'congreso-tabla-v3';
+const LS_SENADO = 'senado-tabla-v2';
 const LS_MODE = 'congreso-modo';
 const LS_CUSTOM_C = 'congreso-custom-parties-v1';
 const LS_CUSTOM_S = 'senado-custom-parties-v1';
-const LS_TIES_C = 'congreso-desempates-v1';
-const LS_TIES_S = 'senado-desempates-v1';
+const LS_TIES_C = 'congreso-desempates-v2';
+const LS_TIES_S = 'senado-desempates-v2';
 
 // Scenario opened from a shared link (#v1/...), parsed once
 const SHARED: SharedState | null =

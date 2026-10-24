@@ -170,10 +170,6 @@ export function serializeMapSvg(svg: SVGSVGElement): string {
   clone.removeAttribute('style');
   clone.setAttribute('font-family', "Inter, 'Segoe UI', system-ui, Helvetica, Arial, sans-serif");
   clone.querySelector('#mapa-hover-overlay')?.remove();
-  // labels such as "Madrid (38)" lose their seat count in the image
-  clone.querySelectorAll('text').forEach((t) => {
-    t.textContent = (t.textContent || '').replace(/\s*\(\d+\)\s*$/, '');
-  });
   return new XMLSerializer().serializeToString(clone);
 }
 

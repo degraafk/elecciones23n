@@ -16,9 +16,9 @@ import {
  */
 const KNOWN_IDS = [
   'PP', 'PSOE', 'Vox', 'FA', 'Podemos', 'ERC', 'Junts', 'EH Bildu', 'PNV', 'BNG', 'CC', 'AA',
-  'UPN-PP', 'C-FV', 'UPC', 'UPN', 'Compromís', 'AHI', 'ASG', 'Otros', 'SdP', 'Sa Unió', 'IU'
+  'UPN-PP', 'C-FV', 'UPC', 'UPN', 'Compromís', 'AHI', 'ASG', 'Otros', 'SdP', 'Sa Unió', 'IU', 'AM-FA', 'C-DEM', 'ERC-EH Bildu'
 ];
-const LETTERS = 'abcdefghijklmnopqrstuvwxyz';
+const LETTERS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const MAX_CUSTOM = LETTERS.length - KNOWN_IDS.length;
 
 export interface SharedState {
@@ -88,7 +88,7 @@ export function decodeShare(hash: string): SharedState | null {
       let used = 0;
       const row: Record<string, number> = {};
       rows[i].split('.').forEach((pair) => {
-        const pm = /^([a-z])(\d{1,2})$/.exec(pair);
+        const pm = /^([a-zA-Z])(\d{1,2})$/.exec(pair);
         if (!pm) return;
         const id = ids[LETTERS.indexOf(pm[1])];
         if (!id || !valid.has(id) || !isPartyEligible(mode === 's', id, c.id)) return;
@@ -102,7 +102,7 @@ export function decodeShare(hash: string): SharedState | null {
     });
     const ties: Record<string, string[]> = {};
     (m[4] || '').split('-').forEach((entry) => {
-      const tm = /^(\d+)\.([a-z]+)$/.exec(entry);
+      const tm = /^(\d+)\.([a-zA-Z]+)$/.exec(entry);
       if (!tm) return;
       const c = constituencies[parseInt(tm[1], 10)];
       if (!c) return;

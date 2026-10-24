@@ -414,21 +414,21 @@ export const ParliamentMap: React.FC<ParliamentMapProps> = ({
             </g>
             <g fontSize={13} fill="#77756d" fontWeight={500} textAnchor="middle">
               <text x={112} y={300}>
-                Madrid (38)
+                Madrid
               </text>
               <text x={834} y={238}>
-                Barcelona (32)
+                Barcelona
               </text>
               <text x={795} y={422}>
-                Illes Balears (8)
+                Illes Balears
               </text>
             </g>
             <g fontSize={13} fill="#77756d" fontWeight={500} textAnchor="middle" transform={CANARIAS_TRANSFORM}>
               <text x={200} y={762}>
-                Santa Cruz de Tenerife (7)
+                Santa Cruz de Tenerife
               </text>
               <text x={318} y={832}>
-                Las Palmas (8)
+                Las Palmas
               </text>
             </g>
           </g>
