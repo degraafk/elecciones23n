@@ -591,7 +591,7 @@ export default function App() {
           <p className="m-0 mb-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#77756d]">
             Simulador 29-N 2026
           </p>
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#17171a] leading-tight m-0">
+          <h1 className="font-display text-4xl sm:text-5xl text-[#17171a] leading-[1.05] m-0">
             {isCongreso ? 'Congreso de los Diputados' : 'Senado de España'}
           </h1>
         </div>

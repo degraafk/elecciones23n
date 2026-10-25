@@ -101,12 +101,14 @@ export default async function handler(request: Request): Promise<Response> {
     .sort((a, b) => b.n - a.n)
     .slice(0, 7);
 
-  const [crest, f400, f700] = await Promise.all([
+  const [crest, f400, f700, serif] = await Promise.all([
     loadCrest(origin, mode),
     loadFont(origin, 'Inter-400.woff'),
-    loadFont(origin, 'Inter-700.woff')
+    loadFont(origin, 'Inter-700.woff'),
+    loadFont(origin, 'InstrumentSerif-400.woff')
   ]);
   const fonts: { name: string; data: ArrayBuffer; weight: 400 | 700; style: 'normal' }[] = [];
+  if (serif) fonts.push({ name: 'Instrument Serif', data: serif, weight: 400, style: 'normal' });
   if (f400) fonts.push({ name: 'Inter', data: f400, weight: 400, style: 'normal' });
   if (f700) fonts.push({ name: 'Inter', data: f700, weight: 700, style: 'normal' });
 
@@ -118,7 +120,13 @@ export default async function handler(request: Request): Promise<Response> {
       'div',
       { style: { display: 'flex', flexDirection: 'column' } },
       h('div', { style: { fontSize: 19, letterSpacing: 2.5, color: '#77756d', fontWeight: 700 } }, 'SIMULADOR 29-N 2026'),
-      h('div', { style: { fontSize: 44, fontWeight: 700, color: '#17171a', marginTop: 4 } }, isC ? 'Congreso de los Diputados' : 'Senado de España')
+      h(
+        'div',
+        serif
+          ? { style: { fontFamily: 'Instrument Serif', fontSize: 62, fontWeight: 400, color: '#17171a', marginTop: 2, lineHeight: 1.05 } }
+          : { style: { fontSize: 44, fontWeight: 700, color: '#17171a', marginTop: 4 } },
+        isC ? 'Congreso de los Diputados' : 'Senado de España'
+      )
     )
   );
 

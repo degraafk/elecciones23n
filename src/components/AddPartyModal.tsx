@@ -94,7 +94,7 @@ export const AddPartyModal: React.FC<AddPartyModalProps> = ({
         {/* Header */}
         <div className="p-4 bg-[#fafaf8] border-b border-[#e9e7e0] flex items-center justify-between gap-3">
           <div>
-            <h3 id="add-party-title" className="text-xl font-bold tracking-tight text-[#17171a] m-0">
+            <h3 id="add-party-title" className="font-display text-3xl leading-none text-[#17171a] m-0">
               Añadir partido
             </h3>
             <p className="text-xs text-[#77756d] m-0 mt-0.5">

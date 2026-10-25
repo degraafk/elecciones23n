@@ -22,6 +22,7 @@ export interface ShareCardData {
   host: string;
 }
 
+const TITLE_FONT = "'Instrument Serif', Georgia, 'Times New Roman', serif";
 const FONT = "Inter, 'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif";
 
 function fit(ctx: CanvasRenderingContext2D, text: string, maxW: number): string {
@@ -72,10 +73,10 @@ export function renderShareCard(ctx: CanvasRenderingContext2D, W: number, H: num
   }
   ctx.fillStyle = '#77756d';
   ctx.font = `700 25px ${FONT}`;
-  ctx.fillText(d.label.toUpperCase(), tx, 116);
+  ctx.fillText(d.label.toUpperCase(), tx, 102);
   ctx.fillStyle = '#17171a';
-  ctx.font = `700 66px ${FONT}`;
-  ctx.fillText(d.title, tx, 184);
+  ctx.font = `400 78px ${TITLE_FONT}`;
+  ctx.fillText(d.title, tx, 186);
   const titleEnd = tx + ctx.measureText(d.title).width;
 
   // selected coalition, top right
@@ -187,6 +188,11 @@ export async function makeShareImage(
   data: Omit<ShareCardData, 'crest' | 'map' | 'host'> & { crestSrc: string; mapSvg: string | null; url: string }
 ): Promise<Blob> {
   const { crestSrc, mapSvg, url, ...rest } = data;
+  try {
+    await document.fonts.load('78px "Instrument Serif"'); // make sure the title font is ready before drawing
+  } catch {
+    /* falls back to Georgia */
+  }
   const [crest, mapUrl] = [await loadImage(crestSrc), mapSvg ? URL.createObjectURL(new Blob([mapSvg], { type: 'image/svg+xml;charset=utf-8' })) : null];
   const map = mapUrl ? await loadImage(mapUrl) : null;
 

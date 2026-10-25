@@ -142,7 +142,7 @@ export const CoalitionMaker: React.FC<CoalitionMakerProps> = ({
     >
       <div className="flex justify-between items-start gap-3 mb-3.5">
         <div>
-          <h2 className="text-lg font-bold tracking-tight text-[#17171a] m-0">Pactómetro</h2>
+          <h2 className="font-display text-2xl text-[#17171a] m-0">Pactómetro</h2>
           <p className="text-xs text-[#77756d] m-0 leading-normal">
             Marca los partidos que quieres juntar y comprueba si suman {majorityName.toLowerCase()} ({targetSeats}).
           </p>
@@ -305,7 +305,7 @@ export const CoalitionMaker: React.FC<CoalitionMakerProps> = ({
         )}
 
         <div className="flex items-baseline justify-between mb-2">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-[#17171a] m-0">Coaliciones sugeridas</h3>
+          <h3 className="font-display text-xl text-[#17171a] m-0">Coaliciones sugeridas</h3>
           <span className="text-[11px] text-[#77756d]">pulsa una para aplicarla</span>
         </div>
 

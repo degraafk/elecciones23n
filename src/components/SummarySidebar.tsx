@@ -95,7 +95,7 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({
 
       {/* Legend Header with Añadir partido button */}
       <div className="flex items-center justify-between pt-3 border-t border-[#e9e7e0]">
-        <span className="text-xs font-bold uppercase tracking-wider text-[#17171a]">
+        <span className="font-display text-xl text-[#17171a]">
           Partidos
         </span>
         {onOpenAddParty && (
@@ -163,7 +163,7 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({
 
       {/* Share */}
       <div className="pt-3 border-t border-[#e9e7e0]">
-        <span className="text-xs font-bold uppercase tracking-wider text-[#17171a]">Compartir</span>
+        <span className="font-display text-xl text-[#17171a]">Compartir</span>
         <div className="grid grid-cols-2 gap-2 mt-2.5 mb-4">
           <MagneticButton
             onClick={onDownloadImage}
@@ -192,7 +192,7 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({
             {onNativeShare ? 'Compartir imagen' : 'Copiar imagen'}
           </button>
         </div>
-        <span className="text-xs font-bold uppercase tracking-wider text-[#17171a]">Exportar</span>
+        <span className="font-display text-xl text-[#17171a]">Exportar</span>
       </div>
 
       {/* Action Buttons (GitHub download button removed) */}

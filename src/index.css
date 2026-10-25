@@ -1,5 +1,20 @@
 @import "tailwindcss";
 
+/* Display serif for the title and section headings: tall, narrow and light (regular weight only) */
+@font-face {
+  font-family: 'Instrument Serif';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/InstrumentSerif-400.woff2') format('woff2'), url('/fonts/InstrumentSerif-400.woff') format('woff');
+}
+
+.font-display {
+  font-family: 'Instrument Serif', 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  font-weight: 400;
+  letter-spacing: -0.005em;
+}
+
 @layer utilities {
   @keyframes fall {
     to {

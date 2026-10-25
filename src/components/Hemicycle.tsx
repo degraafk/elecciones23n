@@ -52,7 +52,7 @@ export const Hemicycle: React.FC<HemicycleProps> = ({
     <section className="pt-8 border-t-2 border-[#efede6]">
       <style>{CSS}</style>
       <div className="mb-2">
-        <h2 className="text-lg font-bold tracking-tight text-[#17171a] m-0">Hemiciclo</h2>
+        <h2 className="font-display text-2xl text-[#17171a] m-0">Hemiciclo</h2>
       </div>
 
       <div

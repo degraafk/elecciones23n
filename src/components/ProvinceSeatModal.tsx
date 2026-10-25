@@ -96,7 +96,7 @@ export const ProvinceSeatModal: React.FC<ProvinceSeatModalProps> = ({
         <div className="p-4 bg-[#fafaf8] border-b border-[#e9e7e0] flex items-start justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <h3 id="modal-title" className="text-xl font-bold tracking-tight text-[#17171a] m-0">
+              <h3 id="modal-title" className="font-display text-3xl leading-none text-[#17171a] m-0">
                 {constituency.name}
               </h3>
               {isComplete && (
