@@ -49,7 +49,7 @@ export const Hemicycle: React.FC<HemicycleProps> = ({
   const hoverCount = hover?.id ? partyTotals[hover.id] || 0 : totalSeats - assigned;
 
   return (
-    <section>
+    <section className="pt-8 border-t-2 border-[#efede6]">
       <style>{CSS}</style>
       <div className="mb-2">
         <h2 className="text-lg font-bold tracking-tight text-[#17171a] m-0">Hemiciclo</h2>

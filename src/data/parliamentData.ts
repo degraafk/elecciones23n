@@ -19,24 +19,25 @@ const P_PSOE: Party = { id: 'PSOE', name: 'PSOE', color: '#e30613', fullName: 'P
 const P_VOX: Party = { id: 'Vox', name: 'Vox', color: '#5fb02e' };
 const P_FA: Party = { id: 'FA', name: 'FA', color: '#ff5a00', fullName: 'Frente Amplio' };
 const P_PODEMOS: Party = { id: 'Podemos', name: 'Podemos', color: '#8f63f0' };
-const P_ERC: Party = { id: 'ERC', name: 'ERC', color: '#f5a623' };
-const P_JUNTS: Party = { id: 'Junts', name: 'Junts', color: '#1ec1b0' };
-const P_BILDU: Party = { id: 'EH Bildu', name: 'EH Bildu', color: '#c8d82a' };
-const P_PNV: Party = { id: 'PNV', name: 'PNV', color: '#0f6b3a' };
-const P_BNG: Party = { id: 'BNG', name: 'BNG', color: '#7fb2e5' };
-const P_CC: Party = { id: 'CC', name: 'CC', color: '#ffd800' };
+const P_ERC: Party = { id: 'ERC', name: 'ERC', color: '#f5a623', fullName: 'Esquerra Republicana de Catalunya' };
+const P_JUNTS: Party = { id: 'Junts', name: 'Junts', color: '#1ec1b0', fullName: 'Junts per Catalunya' };
+const P_BILDU: Party = { id: 'EH Bildu', name: 'EH Bildu', color: '#c8d82a', fullName: 'Euskal Herria Bildu' };
+const P_PNV: Party = { id: 'PNV', name: 'PNV', color: '#0f6b3a', fullName: 'Partido Nacionalista Vasco' };
+const P_BNG: Party = { id: 'BNG', name: 'BNG', color: '#7fb2e5', fullName: 'Bloque Nacionalista Galego' };
+const P_CC: Party = { id: 'CC', name: 'CC-1ºC', color: '#ffd800', fullName: 'Coalición Canaria - Primero Canarias' };
 const P_AA: Party = { id: 'AA', name: 'AA', color: '#8fdb98', fullName: 'Adelante Andalucía' };
 const P_AHI: Party = { id: 'AHI', name: 'AHI', color: '#7a4fa3', fullName: 'Agrupación Herreña Independiente' };
 const P_ASG: Party = { id: 'ASG', name: 'ASG', color: '#d9528a', fullName: 'Agrupación Socialista Gomera' };
 
 // Coalitions
-const P_UPN_PP: Party = { id: 'UPN-PP', name: 'UPN-PP', color: '#2b4c7e', fullName: 'Coalición UPN y PP (Navarra)' };
-const P_CFV: Party = { id: 'C-FV', name: 'C-FV', color: '#d9480f', fullName: 'Compromís-Front Valencià (FA + Compromís + Podemos)' };
-const P_UPC: Party = { id: 'UPC', name: 'UPC', color: '#c2255c', fullName: 'Unidad del Pueblo Canario (FA + Nueva Canarias + Podemos)' };
-const P_SAUNIO: Party = { id: 'Sa Unió', name: 'Sa Unió', color: '#0e9aa7', fullName: 'Sa Unió (coalición local con el PP en Formentera)' };
-const P_AMFA: Party = { id: 'AM-FA', name: 'AM-FA', color: '#cfe8a1', fullName: 'Ara Més - Front Ampli (Illes Balears)' };
-const P_CDEM: Party = { id: 'C-DEM', name: 'C-DEM', color: '#8e2a63', fullName: 'Comuns - Front Ampli per la democràcia (Cataluña)' };
-const P_ERCEHB: Party = { id: 'ERC-EH Bildu', name: 'ERC-EH Bildu', color: '#f1e49b', fullName: 'Esquerra Republicana de Catalunya-Euskal Herria Bildu (Cataluña, Euskadi y Navarra)' };
+const P_UPN_PP: Party = { id: 'UPN-PP', name: 'UPN-PP', color: '#2b4c7e', fullName: 'Unión del Pueblo Navarro - Partido Popular' };
+const P_CFV: Party = { id: 'C-FV', name: 'C-FV', color: '#d9480f', fullName: 'Compromís - Front Valencià' };
+const P_UPC: Party = { id: 'UPC', name: 'UPC', color: '#c2255c', fullName: 'Unidad del Pueblo Canario' };
+const P_SAUNIO: Party = { id: 'Sa Unió', name: 'Sa Unió', color: '#0e9aa7' };
+const P_AMFA: Party = { id: 'AM-FA', name: 'AM-FA', color: '#cfe8a1', fullName: 'Ara Més - Front Ampli' };
+const P_CDEM: Party = { id: 'C-DEM', name: 'C-DEM', color: '#8e2a63', fullName: 'Comuns - Front Ampli per la democràcia' };
+const P_ERCEHB: Party = { id: 'ERC-EH Bildu', name: 'ERC-EH Bildu', color: '#f1e49b', fullName: 'Esquerra Republicana de Catalunya - Euskal Herria Bildu' };
+const P_BAS: Party = { id: 'Balears al Senat', name: 'Balears al Senat', color: '#cf3a43' };
 const P_SDP: Party = { id: 'SdP', name: 'SdP', color: '#b5121b', fullName: 'Senado de Progreso' };
 
 export const PARTIES_CONGRESO: Party[] = [
@@ -45,12 +46,12 @@ export const PARTIES_CONGRESO: Party[] = [
 ];
 
 export const PARTIES_SENADO: Party[] = [
-  P_PP, P_PSOE, P_SDP, P_VOX, P_FA, P_PODEMOS, P_ERCEHB, P_JUNTS, P_PNV, P_BNG, P_CC, P_AA,
+  P_PP, P_PSOE, P_SDP, P_BAS, P_VOX, P_PODEMOS, P_ERCEHB, P_JUNTS, P_PNV, P_BNG, P_CC, P_AA,
   P_UPN_PP, P_SAUNIO, P_AHI, P_ASG, P_UPC, P_CDEM
 ];
 
 /** Suggested coalitions shown in the coalition maker (ids missing in a chamber are ignored). */
-const LEFT = ['PSOE', 'SdP', 'FA', 'AM-FA', 'C-DEM', 'Podemos', 'C-FV', 'UPC', 'ERC', 'ERC-EH Bildu', 'EH Bildu', 'BNG', 'AA', 'ASG'];
+const LEFT = ['PSOE', 'SdP', 'Balears al Senat', 'FA', 'AM-FA', 'C-DEM', 'Podemos', 'C-FV', 'UPC', 'ERC', 'ERC-EH Bildu', 'EH Bildu', 'BNG', 'AA', 'ASG'];
 export const BLOCS: { id: string; name: string; parties: string[] }[] = [
   { id: 'derecha', name: 'Bloque de derechas', parties: ['PP', 'Vox', 'UPN-PP', 'Sa Unió'] },
   { id: 'izquierda', name: 'Bloque de izquierdas', parties: LEFT },
@@ -69,11 +70,13 @@ const GALICIA = ['A_Coruña', 'Lugo', 'Ourense', 'Pontevedra'];
 const ANDALUSIA = ['Almería', 'Cádiz', 'Córdoba', 'Granada', 'Huelva', 'Jaén', 'Málaga', 'Sevilla'];
 
 // Senado circunscripciones
-const EXTREMADURA = ['Badajoz', 'Cáceres'];
+const BALEARES_SENADO = ['Mallorca', 'Menorca', 'Ibiza', 'Formentera'];
 const SENADO_CANARIAS = ['Gran_Canaria', 'Tenerife', 'Lanzarote', 'Fuerteventura', 'La_Palma', 'El_Hierro', 'La_Gomera'];
 const SENADO_CANARIAS_SIN_GOMERA = SENADO_CANARIAS.filter((id) => id !== 'La_Gomera');
-// Where SdP does not run and the left goes separately
-const SDP_FUERA = [...CATALONIA, ...EXTREMADURA, 'Sevilla', ...SENADO_CANARIAS_SIN_GOMERA];
+// SdP runs everywhere except Catalonia, the Canary Islands (La Gomera aside) and the Balearics,
+// where the left goes separately (Balears al Senat in the Balearics)
+const SDP_SEPARADA = [...CATALONIA, ...SENADO_CANARIAS_SIN_GOMERA];
+const SDP_FUERA = [...SDP_SEPARADA, ...BALEARES_SENADO];
 
 /** Parties that only run in these provinces. */
 const ONLY_IN: Record<string, string[]> = {
@@ -109,9 +112,9 @@ const ONLY_IN_SENADO: Record<string, string[]> = {
   AA: ANDALUSIA,
   AHI: ['El_Hierro'],
   ASG: ['La_Gomera'],
-  // inside SdP everywhere else
-  PSOE: SDP_FUERA,
-  FA: [...EXTREMADURA, 'Sevilla'],
+  'Balears al Senat': BALEARES_SENADO,
+  // inside SdP (or Balears al Senat) everywhere else
+  PSOE: SDP_SEPARADA,
   UPC: SENADO_CANARIAS_SIN_GOMERA
 };
 
@@ -139,8 +142,13 @@ export const ineligibleReason = (partyId: string, isSenado = false, constituency
   if (partyId === 'ERC-EH Bildu') return 'Solo se presenta en Cataluña, Euskadi y Navarra';
   if (isSenado && partyId === 'FA' && CATALONIA.includes(constituencyId || '')) return 'En Cataluña concurre Comuns - Front Ampli per la democràcia (C-DEM)';
   if (isSenado && partyId === 'PP' && constituencyId === 'Formentera') return 'En Formentera concurre como Sa Unió';
-  if (isSenado && partyId === 'SdP') return 'Aquí la izquierda va por separado';
-  if (isSenado && ['PSOE', 'FA', 'UPC'].includes(partyId)) return 'Aquí concurre dentro de Senado de Progreso (SdP)';
+  if (partyId === 'Balears al Senat') return 'Solo se presenta en Illes Balears';
+  if (isSenado && partyId === 'SdP') {
+    return BALEARES_SENADO.includes(constituencyId || '') ? 'En Illes Balears concurre Balears al Senat' : 'Aquí la izquierda va por separado';
+  }
+  if (isSenado && ['PSOE', 'FA', 'UPC'].includes(partyId)) {
+    return BALEARES_SENADO.includes(constituencyId || '') ? 'Aquí concurre dentro de Balears al Senat' : 'Aquí concurre dentro de Senado de Progreso (SdP)';
+  }
   if (partyId === 'AHI') return 'Solo se presenta en El Hierro';
   if (partyId === 'ASG') return 'Solo se presenta en La Gomera';
   if (partyId === 'C-FV') return 'Solo se presenta en la Comunitat Valenciana';
@@ -176,11 +184,14 @@ function migrateScenario(scenario: ScenarioData, isSenado: boolean): ScenarioDat
         if (provId === 'Formentera' && pid === 'PP') id = 'Sa Unió';
         else if (['ERC', 'EH Bildu'].includes(pid)) id = 'ERC-EH Bildu';
         else if (CATALONIA.includes(provId) && pid === 'FA') id = 'C-DEM';
+        else if (SENADO_CANARIAS_SIN_GOMERA.includes(provId) && pid === 'FA') id = 'UPC';
+        else if (BALEARES_SENADO.includes(provId) && ['PSOE', 'FA', 'SdP', 'C-FV', 'UPC', 'Compromís'].includes(pid)) id = 'Balears al Senat';
         else if (['PSOE', 'FA', 'C-FV', 'UPC', 'Compromís'].includes(pid) && isPartyEligible(true, 'SdP', provId)) id = 'SdP';
       } else if (provId === 'Baleares' && pid === 'FA') id = 'AM-FA';
       else if (VALENCIAN_COMMUNITY.includes(provId) && ['FA', 'Podemos', 'Compromís'].includes(pid)) id = 'C-FV';
       else if (CANARY_ISLANDS.includes(provId) && ['FA', 'Podemos'].includes(pid)) id = 'UPC';
 
+      if (isSenado && id === 'FA') return; // Frente Amplio no longer runs on its own in the Senado
       if (REMOVED_PARTIES.includes(id) || !isPartyEligible(isSenado, id, provId)) return;
       target[id] = (target[id] || 0) + n;
     });
@@ -539,6 +550,7 @@ const shareOf = (partyId: string, constituencyId: string): number => {
       value = v.Sumar;
       break;
     case 'SdP':
+    case 'Balears al Senat':
       value = v.PSOE !== undefined || v.Sumar !== undefined ? pick('PSOE') + pick('Sumar') : undefined;
       break;
     case 'EH Bildu':

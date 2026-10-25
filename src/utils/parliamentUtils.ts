@@ -234,6 +234,7 @@ export async function parseSpreadsheetFile(
   });
   partyMap['eajpnv'] = 'PNV';
   partyMap['bildu'] = 'EH Bildu';
+  partyMap['cc'] = 'CC';
 
   // Find header row with party names
   const headerIdx = rows.findIndex((row) =>
