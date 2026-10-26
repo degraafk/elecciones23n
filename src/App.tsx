@@ -590,9 +590,7 @@ export default function App() {
           className="h-14 sm:h-[72px] w-auto shrink-0 animate-in-view"
         />
         <div>
-          <p className="m-0 mb-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#77756d]">
-            Simulador 29-N 2026
-          </p>
+          <p className="font-display italic m-0 mb-0.5 text-xl leading-tight text-[#77756d]">Simulador 29-N 2026</p>
           <h1 className="font-display text-4xl sm:text-5xl text-[#17171a] leading-[1.05] m-0">
             {isCongreso ? 'Congreso de los Diputados' : 'Senado de España'}
           </h1>

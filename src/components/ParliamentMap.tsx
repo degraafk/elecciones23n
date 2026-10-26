@@ -392,13 +392,12 @@ export const ParliamentMap: React.FC<ParliamentMapProps> = ({
         {/* Ceuta & Melilla callout lines */}
         <g stroke="#a19e93" fill="none" strokeWidth={1} className="pointer-events-none">
           <path d="M331.5,647.2L331.5,665" />
-          <path d="M459.1,689.2L459.1,722" />
         </g>
         <g fontSize={13} fill="#77756d" fontWeight={500} textAnchor="middle" className="pointer-events-none">
           <text x={331} y={704}>
             Ceuta
           </text>
-          <text x={459} y={761}>
+          <text x={459} y={704}>
             Melilla
           </text>
         </g>
@@ -413,22 +412,8 @@ export const ParliamentMap: React.FC<ParliamentMapProps> = ({
               <circle cx={742} cy={250} r={2.5} fill="#a19e93" stroke="none" />
             </g>
             <g fontSize={13} fill="#77756d" fontWeight={500} textAnchor="middle">
-              <text x={112} y={300}>
-                Madrid
-              </text>
-              <text x={834} y={238}>
-                Barcelona
-              </text>
               <text x={795} y={422}>
                 Illes Balears
-              </text>
-            </g>
-            <g fontSize={13} fill="#77756d" fontWeight={500} textAnchor="middle" transform={CANARIAS_TRANSFORM}>
-              <text x={200} y={762}>
-                Santa Cruz de Tenerife
-              </text>
-              <text x={318} y={832}>
-                Las Palmas
               </text>
             </g>
           </g>

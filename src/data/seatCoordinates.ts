@@ -228,7 +228,7 @@ export const CONGRESO_SEATS: Record<string, SeatCircle[]> = {
     {cx: 331.0, cy: 678.0, r: 5.8}
   ],
   Melilla: [
-    {cx: 459.0, cy: 735.0, r: 5.8}
+    {cx: 459.0, cy: 678.0, r: 5.8}
   ]
 };
 
@@ -274,7 +274,7 @@ export const SENADO_SEATS: Record<string, SeatCircle[]> = {
   Madrid: [{cx: 412.0, cy: 319.0, r: 5.8}, {cx: 424.0, cy: 319.0, r: 5.8}, {cx: 412.0, cy: 331.0, r: 5.8}, {cx: 424.0, cy: 331.0, r: 5.8}],
   Málaga: [{cx: 357.0, cy: 577.0, r: 5.8}, {cx: 369.0, cy: 577.0, r: 5.8}, {cx: 357.0, cy: 589.0, r: 5.8}, {cx: 369.0, cy: 589.0, r: 5.8}],
   Mallorca: [{cx: 769.0, cy: 382.0, r: 5.8}, {cx: 781.0, cy: 382.0, r: 5.8}, {cx: 775.0, cy: 394.0, r: 5.8}],
-  Melilla: [{cx: 453.0, cy: 735.0, r: 5.8}, {cx: 465.0, cy: 735.0, r: 5.8}],
+  Melilla: [{cx: 453.0, cy: 678.0, r: 5.8}, {cx: 465.0, cy: 678.0, r: 5.8}],
   Menorca: [{cx: 835.0, cy: 362.0, r: 5.8}],
   Murcia: [{cx: 531.0, cy: 493.0, r: 5.8}, {cx: 543.0, cy: 493.0, r: 5.8}, {cx: 531.0, cy: 505.0, r: 5.8}, {cx: 543.0, cy: 505.0, r: 5.8}],
   Navarra: [{cx: 524.0, cy: 171.0, r: 5.8}, {cx: 536.0, cy: 171.0, r: 5.8}, {cx: 524.0, cy: 183.0, r: 5.8}, {cx: 536.0, cy: 183.0, r: 5.8}],

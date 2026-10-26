@@ -3,8 +3,8 @@ import { computeHemicycle, seatOwners } from './hemicycle';
 import { MAP_VIEW } from '../data/mapView';
 
 export const CARD_W = 1600;
-export const CARD_H = 1150;
-const SCALE = 1.5; // PNG is rendered at 1.5x (2400 x 1725) so it stays sharp when zoomed or printed
+export const CARD_H = 1075;
+const SCALE = 1.5; // PNG is rendered at 1.5x (2400 x 1613) so it stays sharp when zoomed or printed
 
 export interface ShareCardData {
   title: string;
@@ -183,7 +183,7 @@ function loadImage(src: string): Promise<HTMLImageElement | null> {
   });
 }
 
-/** Renders the prediction card as a sharp PNG (2400 x 1725). */
+/** Renders the prediction card as a sharp PNG (2400 x 1613). */
 export async function makeShareImage(
   data: Omit<ShareCardData, 'crest' | 'map' | 'host'> & { crestSrc: string; mapSvg: string | null; url: string }
 ): Promise<Blob> {

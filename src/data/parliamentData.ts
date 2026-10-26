@@ -96,7 +96,7 @@ const ONLY_IN: Record<string, string[]> = {
 /** Parties that run everywhere except in these provinces (their coalition runs instead). */
 const NOT_IN: Record<string, string[]> = {
   FA: [...VALENCIAN_COMMUNITY, ...CANARY_ISLANDS, 'Teruel', 'Baleares'],
-  Podemos: [...VALENCIAN_COMMUNITY, ...CANARY_ISLANDS],
+  Podemos: [...VALENCIAN_COMMUNITY, ...CANARY_ISLANDS, 'Baleares', ...CATALONIA],
   PP: NAVARRA
 };
 
@@ -120,7 +120,7 @@ const ONLY_IN_SENADO: Record<string, string[]> = {
 
 const NOT_IN_SENADO: Record<string, string[]> = {
   SdP: SDP_FUERA,
-  Podemos: [...VALENCIAN_COMMUNITY, ...SENADO_CANARIAS],
+  Podemos: [...VALENCIAN_COMMUNITY, ...SENADO_CANARIAS, ...BALEARES_SENADO, ...CATALONIA],
   PP: [...NAVARRA, 'Formentera']
 };
 
@@ -134,6 +134,11 @@ export const isPartyEligible = (isSenado: boolean, partyId: string, constituency
 
 /** Short note shown where a party does not run. */
 export const ineligibleReason = (partyId: string, isSenado = false, constituencyId?: string): string => {
+  if (partyId === 'Podemos') {
+    return [...VALENCIAN_COMMUNITY, ...CANARY_ISLANDS, ...SENADO_CANARIAS].includes(constituencyId || '')
+      ? 'Aquí concurre dentro de una coalición'
+      : 'Podemos no se presenta en esta circunscripción';
+  }
   if (partyId === 'Sa Unió') return 'Solo se presenta en Formentera';
   if (!isSenado && partyId === 'FA' && constituencyId === 'Teruel') return 'En Teruel no se presenta Frente Amplio';
   if (!isSenado && partyId === 'FA' && constituencyId === 'Baleares') return 'En Illes Balears concurre Ara Més - Front Ampli (AM-FA)';
