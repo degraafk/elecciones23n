@@ -42,6 +42,8 @@ const LS_CUSTOM_S = 'senado-custom-parties-v1';
 const LS_TIES_C = 'congreso-desempates-v2';
 const LS_TIES_S = 'senado-desempates-v2';
 
+const NO_TIES: Record<string, string[]> = {}; // the Senado map shows tied provinces with stripes
+
 // Scenario opened from a shared link (#v1/...), parsed once
 const SHARED: SharedState | null =
   typeof window !== 'undefined' ? decodeShare(window.location.hash) : null;
@@ -662,7 +664,7 @@ export default function App() {
             parties={parties}
             constituencies={constituencies}
             scenario={activeScenario}
-            tieOrders={activeTies}
+            tieOrders={isCongreso ? activeTies : NO_TIES}
             hoveredConstituencyId={hoveredConstituencyId}
             onHoverConstituency={setHoveredConstituencyId}
             onSelectConstituency={setSelectedConstituencyId}

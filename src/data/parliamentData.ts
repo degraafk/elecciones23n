@@ -587,17 +587,8 @@ const computeBaseTies = (scenario: ScenarioData, parties: Party[]): Record<strin
 };
 
 export const BASE_TIES_CONGRESO: Record<string, string[]> = computeBaseTies(BASE_CONGRESO, PARTIES_CONGRESO);
-// Provinces split 2-2 between PP and PSOE (SdP): the Senate data lists PP first, so it takes the colour
-const SENADO_BASE_TIE_ORDER: Record<string, string[]> = {
-  Badajoz: ['PP', 'SdP'],
-  Cáceres: ['PP', 'SdP'],
-  Huelva: ['PP', 'SdP'],
-  Valencia: ['PP', 'SdP']
-};
-export const BASE_TIES_SENADO: Record<string, string[]> = {
-  ...computeBaseTies(BASE_SENADO, PARTIES_SENADO),
-  ...SENADO_BASE_TIE_ORDER
-};
+// In the Senado ties are allowed: the map shows diagonal stripes (for example Valencia, 2-2), so no order is stored
+export const BASE_TIES_SENADO: Record<string, string[]> = {};
 
 export const ALIASES: Record<string, string> = {
   vizcaya: 'bizkaia',

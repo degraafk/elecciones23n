@@ -71,7 +71,8 @@ export const ProvinceSeatModal: React.FC<ProvinceSeatModalProps> = ({
   };
 
   // Every tie in seats (1st and 2nd, 3rd and 4th, ...) has to be ranked before the popup can be closed
-  const groups = tieGroups(provData, parties).map((g) => {
+  // (in the Senado ties are allowed: the map shows diagonal stripes and nothing has to be ranked)
+  const groups = (isSenado ? [] : tieGroups(provData, parties)).map((g) => {
     const resolved = !!tieOrder && g.ids.every((id) => tieOrder.includes(id));
     const ordered = resolved ? [...g.ids].sort((a, b) => tieOrder!.indexOf(a) - tieOrder!.indexOf(b)) : g.ids;
     return { ...g, resolved, ordered };

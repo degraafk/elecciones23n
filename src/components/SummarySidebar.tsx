@@ -89,8 +89,22 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({
         />
       </div>
 
-      <div className="text-xs text-[#77756d] mb-4">
-        La línea marca {majorityName.toLowerCase()} ({targetSeats})
+      {/* Scenario actions */}
+      <div className="grid grid-cols-2 gap-2 mb-5">
+        <button
+          type="button"
+          onClick={onRestoreBase}
+          className="py-2 px-3 rounded-xl border border-[#e9e7e0] bg-white text-[#17171a] text-xs font-medium hover:bg-[#fafaf8] hover:border-[#a19e93] active:scale-95 transition-all cursor-pointer text-center"
+        >
+          Escenario 23-J
+        </button>
+        <button
+          type="button"
+          onClick={onClearTable}
+          className="py-2 px-3 rounded-xl border border-[#e9e7e0] bg-white text-[#c4281c] text-xs font-medium hover:bg-[#fdf1ef] hover:border-[#c4281c] active:scale-95 transition-all cursor-pointer text-center"
+        >
+          Vaciar tabla
+        </button>
       </div>
 
       {/* Legend Header with Añadir partido button */}
@@ -156,10 +170,7 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({
         </div>
       </div>
 
-      <div className="text-xs text-[#77756d] mt-2 mb-4 leading-relaxed">
-        El fondo de cada provincia toma el color del partido con más escaños (rayas si hay empate).
-        {showDeltas && ' Los números verdes y rojos comparan con el escenario 23-J.'}
-      </div>
+      <div className="mb-4" />
 
       {/* Share */}
       <div className="pt-3 border-t border-[#e9e7e0]">
@@ -215,20 +226,6 @@ export const SummarySidebar: React.FC<SummarySidebarProps> = ({
           Importar CSV
           <input type="file" accept=".csv,text/csv" onChange={onImportFile} className="hidden" />
         </label>
-        <button
-          type="button"
-          onClick={onRestoreBase}
-          className="py-2.5 px-3 rounded-xl border border-[#e9e7e0] bg-white text-[#17171a] text-xs font-medium hover:bg-[#fafaf8] hover:border-[#a19e93] active:scale-95 transition-all cursor-pointer text-center"
-        >
-          Escenario 23-J
-        </button>
-        <button
-          type="button"
-          onClick={onClearTable}
-          className="py-2.5 px-3 rounded-xl border border-[#e9e7e0] bg-white text-[#c4281c] text-xs font-medium hover:bg-[#fdf1ef] hover:border-[#c4281c] active:scale-95 transition-all cursor-pointer text-center"
-        >
-          Vaciar tabla
-        </button>
       </div>
 
       <div className="text-xs text-[#77756d] mt-2 leading-relaxed">
