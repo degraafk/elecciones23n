@@ -8,6 +8,9 @@ export function normalizeStr(t: string | number | null | undefined): string {
     .replace(/[^a-z0-9]/g, '');
 }
 
+/** How strongly the winning party's colour fills its province (1 = full colour, 0 = white). */
+export const PROVINCE_TINT = 0.5;
+
 export function tintColor(hex: string, t: number): string {
   const cleanHex = hex.startsWith('#') ? hex.slice(1) : hex;
   const n = parseInt(cleanHex, 16);
@@ -83,7 +86,7 @@ export function getProvinceFill(
 
   if (winners.length === 1) {
     const party = parties[winners[0]];
-    return { fill: tintColor(party.color, 0.3) };
+    return { fill: tintColor(party.color, PROVINCE_TINT) };
   }
 
   // Tie that the user has ordered: only the first party's colour is shown
@@ -92,13 +95,13 @@ export function getProvinceFill(
     if (ids.every((id) => tieOrder.includes(id))) {
       const first = [...ids].sort((a, b) => tieOrder.indexOf(a) - tieOrder.indexOf(b))[0];
       const party = parties.find((p) => p.id === first)!;
-      return { fill: tintColor(party.color, 0.3) };
+      return { fill: tintColor(party.color, PROVINCE_TINT) };
     }
   }
 
   // Hatch pattern for unresolved ties
   const patternId = `h${modeKey}-${winners.join('-')}`;
-  const patternColors = winners.map((idx) => tintColor(parties[idx].color, 0.3));
+  const patternColors = winners.map((idx) => tintColor(parties[idx].color, PROVINCE_TINT));
 
   return {
     fill: `url(#${patternId})`,
